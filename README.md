@@ -7,10 +7,20 @@ Execute `npm start` e abra `http://localhost:4200`. O servidor Angular encaminha
 Gateway e Catalog (8081), com as suas dependências, precisam estar disponíveis;
 o frontend não os inicia. Não é necessário login para consultar produtos.
 
-A vitrine apresenta a primeira página (até 20 produtos ACTIVE, por nome), com
-preços e imagens recebidos da API. Paginação e filtros interativos ficam para
-FE-03. As chamadas têm timeout de 10 segundos; falhas permitem nova tentativa
-manual. Nenhum produto de demonstração é carregado pela aplicação.
+A vitrine apresenta produtos ACTIVE em páginas de 20, com preços e imagens
+recebidos da API. A busca é enviada pelo cabeçalho, por Enter ou pelo botão
+de pesquisa. É possível filtrar por preço e ordenar por nome, preço ou data de
+criação. Preços aceitam vírgula ou ponto e até duas casas decimais.
+
+Busca, preços, ordenação e página são guardados na URL; ligações partilhadas,
+recarregamento e histórico do navegador restauram a consulta. Alterar busca,
+preços ou ordenação volta à primeira página. Exemplo:
+`/?name=Livro&minPrice=10&maxPrice=50&sort=price,asc&page=1` (página 2).
+No telemóvel, o botão "Filtrar por preço" expande o painel na própria página.
+Categorias aguardam uma API de listagem; não há categorias fixas no frontend.
+
+As chamadas têm timeout de 10 segundos; falhas permitem nova tentativa manual
+com os filtros atuais. Nenhum produto de demonstração é carregado pela aplicação.
 
 Em produção, `/api` deve ser encaminhado ao Gateway pela infraestrutura que
 serve o frontend. O proxy do Angular atua apenas no servidor de desenvolvimento.

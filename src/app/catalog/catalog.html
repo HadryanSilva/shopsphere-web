@@ -1,49 +1,184 @@
 @let current = state();
-<div [attr.aria-busy]="current.status === 'loading'">
-  @switch (current.status) {
-    @case ('loading') {
-      <p class="state-message" role="status">A carregar produtos…</p>
+<div class="catalog-layout">
+  <aside class="filters" aria-label="Filtros do catálogo">
+    <button
+      class="filter-toggle"
+      type="button"
+      [attr.aria-expanded]="filtersOpen()"
+      aria-controls="price-filters"
+      (click)="filtersOpen.set(!filtersOpen())"
+    >
+      Filtrar por preço
+    </button>
+    <form id="price-filters" [class.is-open]="filtersOpen()" (submit)="applyPrices($event)">
+      <fieldset>
+        <legend>Preço</legend>
+        <p id="price-hint">Valores em EUR</p>
+        <label for="min-price">Mínimo</label>
+        <input
+          #min
+          id="min-price"
+          name="minPrice"
+          inputmode="decimal"
+          [value]="minPrice"
+          (input)="minPrice = min.value"
+          aria-describedby="price-hint price-error"
+          [attr.aria-invalid]="formError() ? 'true' : null"
+          placeholder="0,00"
+        />
+        <label for="max-price">Máximo</label>
+        <input
+          #max
+          id="max-price"
+          name="maxPrice"
+          inputmode="decimal"
+          [value]="maxPrice"
+          (input)="maxPrice = max.value"
+          aria-describedby="price-hint price-error"
+          [attr.aria-invalid]="formError() ? 'true' : null"
+          placeholder="Sem limite"
+        />
+      </fieldset>
+      <p id="price-error" class="filter-error" [attr.role]="formError() ? 'alert' : null">
+        {{ formError() }}
+      </p>
+      <button type="submit">Aplicar preços</button>
+      <button type="button" class="secondary" (click)="clearFilters()">Limpar filtros</button>
+    </form>
+  </aside>
+  <div class="catalog-results">
+    <div class="toolbar">
+      <label for="catalog-sort">Ordenar por</label>
+      <select
+        #sort
+        id="catalog-sort"
+        [value]="query().sort"
+        (change)="updateQuery({ sort: sort.value, page: null })"
+      >
+        @for (option of sortOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+    @if (query().name || query().minPrice || query().maxPrice) {
+      <ul class="active-filters" aria-label="Filtros ativos">
+        @if (query().name) {
+          <li>
+            <button
+              class="secondary"
+              type="button"
+              (click)="updateQuery({ name: null, page: null })"
+              [attr.aria-label]="'Remover pesquisa: ' + query().name"
+            >
+              Pesquisa: {{ query().name }} ×
+            </button>
+          </li>
+        }
+        @if (query().minPrice || query().maxPrice) {
+          <li>
+            <button
+              class="secondary"
+              type="button"
+              (click)="updateQuery({ minPrice: null, maxPrice: null, page: null })"
+              aria-label="Remover intervalo de preço"
+            >
+              Preço: {{ query().minPrice || '0' }}–{{ query().maxPrice || 'sem limite' }} EUR ×
+            </button>
+          </li>
+        }
+      </ul>
     }
-    @case ('error') {
-      <div class="state-message">
-        <p role="alert">Não foi possível carregar os produtos. Tente novamente.</p>
-        <button type="button" (click)="load()">Tentar novamente</button>
-      </div>
-    }
-    @case ('loaded') {
-      @if (current.page.content.length === 0) {
-        <p class="state-message" role="status">Ainda não há produtos para apresentar.</p>
-      } @else {
-        <p class="result-count" role="status">
-          A mostrar {{ current.page.content.length }} de {{ current.page.totalElements }} produtos
-        </p>
-        <ul class="product-grid" aria-label="Produtos">
-          @for (product of current.page.content; track product.id) {
-            <li>
-              <article class="product-card">
-                <div class="product-image">
-                  @if (product.imageUrl && !failedImages().has(product.id)) {
-                    <img
-                      [src]="product.imageUrl"
-                      [alt]="product.name"
-                      loading="lazy"
-                      (error)="imageFailed(product.id)"
-                    />
-                  } @else {
-                    <span class="image-placeholder">Imagem indisponível</span>
-                  }
-                </div>
-                <div class="product-info">
-                  <h3>{{ product.name }}</h3>
-                  <p class="price">
-                    {{ product.price | currency: product.currency : 'symbol' : '1.2-2' }}
-                  </p>
-                </div>
-              </article>
-            </li>
+    <div [attr.aria-busy]="current.status === 'loading'">
+      @switch (current.status) {
+        @case ('loading') {
+          <p class="state-message" role="status">A carregar produtos…</p>
+        }
+        @case ('error') {
+          <div class="state-message">
+            <p role="alert">Não foi possível carregar os produtos. Tente novamente.</p>
+            <button type="button" (click)="load()">Tentar novamente</button>
+          </div>
+        }
+        @case ('invalid') {
+          <p class="state-message" role="alert">
+            {{ current.message }} Corrija ou limpe os filtros.
+          </p>
+        }
+        @case ('loaded') {
+          @if (current.page.content.length === 0) {
+            <div class="state-message">
+              <p role="status">
+                @if (query().page > 0) {
+                  Esta página não tem produtos.
+                } @else if (query().name || query().minPrice || query().maxPrice) {
+                  Não encontrámos produtos para estes filtros.
+                } @else {
+                  Ainda não há produtos para apresentar.
+                }
+              </p>
+              @if (query().page > 0) {
+                <button type="button" (click)="updateQuery({ page: null })">
+                  Voltar à primeira página
+                </button>
+              }
+            </div>
+          } @else {
+            <p class="result-count" role="status">
+              A mostrar {{ current.page.page * current.page.size + 1 }}–{{
+                current.page.page * current.page.size + current.page.content.length
+              }}
+              de {{ current.page.totalElements }} produtos
+            </p>
+            <ul class="product-grid" aria-label="Produtos">
+              @for (product of current.page.content; track product.id) {
+                <li>
+                  <article class="product-card">
+                    <div class="product-image">
+                      @if (product.imageUrl && !failedImages().has(product.id)) {
+                        <img
+                          [src]="product.imageUrl"
+                          [alt]="product.name"
+                          loading="lazy"
+                          (error)="imageFailed(product.id)"
+                        />
+                      } @else {
+                        <span class="image-placeholder">Imagem indisponível</span>
+                      }
+                    </div>
+                    <div class="product-info">
+                      <h3>{{ product.name }}</h3>
+                      <p class="price">
+                        {{ product.price | currency: product.currency : 'symbol' : '1.2-2' }}
+                      </p>
+                    </div>
+                  </article>
+                </li>
+              }
+            </ul>
+            @if (current.page.totalPages > 1) {
+              <nav class="pagination" aria-label="Páginas do catálogo">
+                <button
+                  type="button"
+                  class="secondary"
+                  [disabled]="current.page.first"
+                  (click)="updateQuery({ page: current.page.page - 1 })"
+                >
+                  Anterior
+                </button>
+                <span>Página {{ current.page.page + 1 }} de {{ current.page.totalPages }}</span>
+                <button
+                  type="button"
+                  class="secondary"
+                  [disabled]="current.page.last"
+                  (click)="updateQuery({ page: current.page.page + 1 })"
+                >
+                  Seguinte
+                </button>
+              </nav>
+            }
           }
-        </ul>
+        }
       }
-    }
-  }
+    </div>
+  </div>
 </div>

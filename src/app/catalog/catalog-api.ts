@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import { CatalogQuery } from './catalog-query';
 
 export interface Product {
   id: string;
@@ -28,9 +29,18 @@ export interface ProductPage {
 export class CatalogApi {
   private readonly http = inject(HttpClient);
 
-  listProducts() {
+  listProducts(query: CatalogQuery) {
+    const params: Record<string, string | number> = {
+      page: query.page,
+      size: 20,
+      sort: query.sort,
+      status: 'ACTIVE',
+    };
+    if (query.name) params['name'] = query.name;
+    if (query.minPrice) params['minPrice'] = query.minPrice;
+    if (query.maxPrice) params['maxPrice'] = query.maxPrice;
     return this.http.get<ProductPage>('/api/v1/products', {
-      params: { page: 0, size: 20, sort: 'name,asc', status: 'ACTIVE' },
+      params,
       timeout: 10000,
     });
   }

@@ -79,6 +79,15 @@ svg {
   color: var(--color-muted);
   opacity: 1;
 }
+.search button {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+}
 .account-nav {
   display: flex;
   gap: 24px;

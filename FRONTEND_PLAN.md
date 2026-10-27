@@ -8,7 +8,7 @@ Cada microtarefa termina com revisão do diff, validação pertinente e commit l
 | ----- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
 | FE-01 | Base visual da loja        | Cabeçalho, introdução curta, área reservada ao catálogo e rodapé responsivos; idioma português, foco visível e salto para o conteúdo. Recursos sem integração identificados como indisponíveis. | Concluída |
 | FE-02 | Catálogo real              | Confirmar DTO/paginação e ligar a listagem ao Gateway; cards com preço/moeda e imagem; carregamento, vazio, erro e nova tentativa. Sem produtos fictícios.                                      | Concluída |
-| FE-03 | Busca, filtros e paginação | Confirmar parâmetros e ordenações aceites; estado na URL, navegação entre páginas e filtros num painel no telemóvel. Validar como obter categorias antes de incluir esse filtro.                | Pendente  |
+| FE-03 | Busca, filtros e paginação | Confirmar parâmetros e ordenações aceites; estado na URL, navegação entre páginas e filtros num painel no telemóvel. Validar como obter categorias antes de incluir esse filtro.                | Concluída |
 | FE-04 | Detalhe do produto         | Rota por ID, imagem, descrição, preço, quantidade e estados de carregamento/404/erro. Ação de compra depende de FE-05/06.                                                                       | Pendente  |
 | FE-05 | Autenticação               | Verificar cliente Keycloak e configurar Authorization Code + PKCE, login/logout e retorno à navegação; definir dependências antes de adicionar bibliotecas.                                     | Pendente  |
 | FE-06 | Carrinho                   | Integrar APIs autenticadas, adição, alteração e remoção; tratar 401/404/409 e falhas de integração, com valores vindos do backend.                                                              | Pendente  |
@@ -16,7 +16,7 @@ Cada microtarefa termina com revisão do diff, validação pertinente e commit l
 ## Limites desta fase
 
 - FE-01 não consulta APIs: a área reservada não representa catálogo vazio nem falha de rede.
-- Busca, conta e carrinho permanecem desativados até as respetivas integrações.
+- Conta e carrinho permanecem desativados até as respetivas integrações.
 - A listagem de categorias não foi identificada na API; não fixar categorias ou IDs no frontend.
 - FE-02 usa /api relativo e proxy local para o Gateway; em produção o encaminhamento precisa ser configurado pela infraestrutura.
 - Checkout/detalhe do pedido e administração serão divididos em microtarefas próprias.
@@ -45,3 +45,24 @@ em navegador e a verificação manual em dispositivos permanecem pendentes.
   execução e inspeção visual em navegador permanecem pendentes.
 - Busca, filtros, paginação interativa, detalhe, autenticação e carrinho não foram
   antecipados. Nenhuma alteração de backend, contrato ou dependência.
+
+## Validação de FE-03
+
+- Busca por nome no cabeçalho, filtros mínimo/máximo de preço, ordenação por
+  nome/preço/data de criação e navegação entre páginas de 20 produtos ACTIVE.
+- Estado em name, minPrice, maxPrice, sort e page na URL (page começa em zero).
+  Alterar busca, preços ou ordenação reinicia a página; histórico e ligações
+  diretas restauram os controles e a consulta.
+- Filtros ativos removíveis, limpeza de rascunhos inválidos, validação de preços
+  não negativos com até duas casas decimais e comparação exata dos limites.
+  Parâmetros de página/ordenação inválidos usam os valores padrão; preços inválidos
+  na URL mostram erro sem enviar uma consulta inválida ao backend.
+- Painel de preços expansível no telemóvel, lateral no computador, com rótulos,
+  mensagens de validação e aria-expanded. Categorias aguardam API de listagem.
+- Consultas anteriores canceladas ao mudar filtros; nova tentativa preserva a
+  consulta atual. Página vazia oferece regresso à primeira sem perder filtros.
+- npm test -- --watch=false: 21 testes aprovados. npm run build: aprovado sem avisos.
+- A inspeção visual foi tentada, mas o navegador de automação falhou na inicialização
+  com helper_unknown_error: setup refresh had errors. QA visual e integração com
+  backend em execução permanecem pendentes; não foram iniciados serviços backend.
+- Nenhuma alteração de dependências, contratos, segurança, banco ou backend.

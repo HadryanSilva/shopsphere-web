@@ -7,20 +7,23 @@
       ShopSphere<span class="brand-dot" aria-hidden="true">.</span>
     </a>
 
-    <div class="search">
+    <form class="search" role="search" (submit)="search(searchInput.value, $event)">
       <label class="visually-hidden" for="product-search">Pesquisar produtos</label>
-      <svg aria-hidden="true" viewBox="0 0 24 24">
-        <circle cx="10.5" cy="10.5" r="6.5" />
-        <path d="m16 16 4 4" />
-      </svg>
+      <button type="submit" aria-label="Pesquisar produtos">
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <circle cx="10.5" cy="10.5" r="6.5" />
+          <path d="m16 16 4 4" />
+        </svg>
+      </button>
       <input
+        #searchInput
         id="product-search"
         type="search"
         placeholder="O que procura hoje?"
-        disabled
-        aria-describedby="features-note"
+        [value]="searchName()"
+        name="name"
       />
-    </div>
+    </form>
 
     <nav class="account-nav" aria-label="Conta e compras">
       <button type="button" disabled aria-label="Minha conta" aria-describedby="features-note">
@@ -59,7 +62,7 @@
     </div>
     <app-catalog />
     <p id="features-note" class="features-note">
-      Pesquisa, conta e carrinho estarão disponíveis nas próximas etapas.
+      Conta e carrinho estarão disponíveis nas próximas etapas.
     </p>
   </section>
   <router-outlet />
