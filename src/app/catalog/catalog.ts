@@ -3,7 +3,7 @@ import { Component, DestroyRef, inject, LOCALE_ID, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import localePt from '@angular/common/locales/pt-PT';
 import { CatalogApi, ProductPage } from './catalog-api';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   catchError,
   distinctUntilChanged,
@@ -26,7 +26,7 @@ type CatalogState =
 
 @Component({
   selector: 'app-catalog',
-  imports: [CurrencyPipe],
+  imports: [CurrencyPipe, RouterLink],
   providers: [{ provide: LOCALE_ID, useValue: 'pt-PT' }],
   templateUrl: './catalog.html',
   styleUrl: './catalog.scss',

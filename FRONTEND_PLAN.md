@@ -9,7 +9,7 @@ Cada microtarefa termina com revisão do diff, validação pertinente e commit l
 | FE-01 | Base visual da loja        | Cabeçalho, introdução curta, área reservada ao catálogo e rodapé responsivos; idioma português, foco visível e salto para o conteúdo. Recursos sem integração identificados como indisponíveis. | Concluída |
 | FE-02 | Catálogo real              | Confirmar DTO/paginação e ligar a listagem ao Gateway; cards com preço/moeda e imagem; carregamento, vazio, erro e nova tentativa. Sem produtos fictícios.                                      | Concluída |
 | FE-03 | Busca, filtros e paginação | Confirmar parâmetros e ordenações aceites; estado na URL, navegação entre páginas e filtros num painel no telemóvel. Validar como obter categorias antes de incluir esse filtro.                | Concluída |
-| FE-04 | Detalhe do produto         | Rota por ID, imagem, descrição, preço, quantidade e estados de carregamento/404/erro. Ação de compra depende de FE-05/06.                                                                       | Pendente  |
+| FE-04 | Detalhe do produto         | Rota por ID, imagem, descrição, preço, quantidade e estados de carregamento/404/erro. Ação de compra depende de FE-05/06.                                                                       | Concluída |
 | FE-05 | Autenticação               | Verificar cliente Keycloak e configurar Authorization Code + PKCE, login/logout e retorno à navegação; definir dependências antes de adicionar bibliotecas.                                     | Pendente  |
 | FE-06 | Carrinho                   | Integrar APIs autenticadas, adição, alteração e remoção; tratar 401/404/409 e falhas de integração, com valores vindos do backend.                                                              | Pendente  |
 
@@ -66,3 +66,28 @@ em navegador e a verificação manual em dispositivos permanecem pendentes.
   com helper_unknown_error: setup refresh had errors. QA visual e integração com
   backend em execução permanecem pendentes; não foram iniciados serviços backend.
 - Nenhuma alteração de dependências, contratos, segurança, banco ou backend.
+
+## Validação de FE-04
+
+- Criadas rotas / para CatalogPage e /products/:id para ProductDetail com
+  carregamento sob demanda. Cabeçalho/rodapé permanecem partilhados; conteúdo e
+  estilos da página inicial foram movidos para permitir telas independentes.
+- GET público /api/v1/products/{id} pelo Gateway, com timeout de 10 segundos,
+  estados de carregamento/404/erro, nova tentativa e cancelamento ao trocar de
+  produto ou sair. UUID inválido não gera chamada ao endpoint.
+- Imagem e descrição têm alternativas para conteúdo ausente; descrição é texto,
+  sem HTML executável. Preço usa a moeda recebida e formatação pt-PT.
+- Quantidade inteira de 1 a 2147483647 (Integer positivo confirmado no Cart).
+  Adicionar ao carrinho continua desativado até FE-05/06; estados INACTIVE e
+  OUT_OF_STOCK impedem seleção de quantidade. Não há consulta de estoque.
+- Cards e retorno preservam filtros/página; a busca no cabeçalho abre o catálogo
+  também a partir do detalhe. Âncoras preservam rota e consulta, com restauração
+  de scroll e suporte a fragmentos pelo Router.
+- npm test -- --watch=false: 34 testes aprovados. npm run build: aprovado sem avisos.
+  Inclui acesso direto, transição catálogo/detalhe, retorno filtrado, 404/retry,
+  conteúdo seguro, quantidade e cancelamento de requisições.
+- GET de verificação ao Gateway localhost:8080 não conectou. Integração com backend
+  em execução e QA visual em navegador permanecem pendentes. A automação visual
+  apresentou falha de inicialização na FE-03 e não foi executada nesta entrega.
+- Nenhuma alteração de backend, contratos, segurança, schema ou dependências.
+  Produção precisa de fallback de SPA para acesso direto às rotas do frontend.

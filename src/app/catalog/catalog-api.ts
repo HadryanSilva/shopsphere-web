@@ -29,6 +29,10 @@ export interface ProductPage {
 export class CatalogApi {
   private readonly http = inject(HttpClient);
 
+  getProduct(id: string) {
+    return this.http.get<Product>(`/api/v1/products/${encodeURIComponent(id)}`, { timeout: 10000 });
+  }
+
   listProducts(query: CatalogQuery) {
     const params: Record<string, string | number> = {
       page: query.page,

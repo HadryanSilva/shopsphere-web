@@ -133,24 +133,31 @@
               @for (product of current.page.content; track product.id) {
                 <li>
                   <article class="product-card">
-                    <div class="product-image">
-                      @if (product.imageUrl && !failedImages().has(product.id)) {
-                        <img
-                          [src]="product.imageUrl"
-                          [alt]="product.name"
-                          loading="lazy"
-                          (error)="imageFailed(product.id)"
-                        />
-                      } @else {
-                        <span class="image-placeholder">Imagem indisponível</span>
-                      }
-                    </div>
-                    <div class="product-info">
-                      <h3>{{ product.name }}</h3>
-                      <p class="price">
-                        {{ product.price | currency: product.currency : 'symbol' : '1.2-2' }}
-                      </p>
-                    </div>
+                    <a
+                      class="product-link"
+                      [routerLink]="['/products', product.id]"
+                      queryParamsHandling="preserve"
+                      [attr.aria-label]="'Ver ' + product.name"
+                    >
+                      <div class="product-image">
+                        @if (product.imageUrl && !failedImages().has(product.id)) {
+                          <img
+                            [src]="product.imageUrl"
+                            [alt]="product.name"
+                            loading="lazy"
+                            (error)="imageFailed(product.id)"
+                          />
+                        } @else {
+                          <span class="image-placeholder">Imagem indisponível</span>
+                        }
+                      </div>
+                      <div class="product-info">
+                        <h3>{{ product.name }}</h3>
+                        <p class="price">
+                          {{ product.price | currency: product.currency : 'symbol' : '1.2-2' }}
+                        </p>
+                      </div>
+                    </a>
                   </article>
                 </li>
               }

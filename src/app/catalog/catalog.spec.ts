@@ -79,6 +79,9 @@ describe('Catalog', () => {
     expect(element.querySelector('h3')?.textContent).toBe(product.name);
     expect(element.querySelector('.price')?.textContent?.replace(/\s/g, '')).toBe('42,50€');
     expect(element.querySelector('.result-count')?.textContent).toContain('1–1 de 24');
+    expect(element.querySelector('.product-link')?.getAttribute('href')).toBe(
+      `/products/${product.id}`,
+    );
     const image = element.querySelector('img');
     expect(image?.getAttribute('src')).toBe(product.imageUrl);
     expect(image?.alt).toBe(product.name);

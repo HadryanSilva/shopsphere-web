@@ -1,0 +1,117 @@
+:host {
+  display: block;
+}
+.back-link {
+  display: inline-block;
+  margin-bottom: 28px;
+  color: var(--color-primary);
+  font-size: 14px;
+}
+.back-link:hover {
+  text-decoration: underline;
+}
+.product-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 56px;
+}
+.product-image {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  align-self: start;
+  overflow: hidden;
+  background: #f1f3f5;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  color: var(--color-muted);
+}
+.product-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+h1 {
+  margin: 0;
+  font-size: clamp(26px, 3vw, 40px);
+  line-height: 1.2;
+  letter-spacing: -1px;
+  overflow-wrap: anywhere;
+}
+.price {
+  margin: 24px 0 32px;
+  font-size: 28px;
+  font-weight: 600;
+}
+h2 {
+  font-size: 16px;
+  margin: 0 0 12px;
+}
+.description {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  color: var(--color-muted);
+  line-height: 1.8;
+}
+.purchase {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border);
+}
+label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+input {
+  width: 120px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font: inherit;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+button {
+  padding: 14px 24px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--color-primary);
+  color: white;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.55;
+}
+.purchase button {
+  display: block;
+}
+.purchase-note {
+  font-size: 12px;
+  color: var(--color-muted);
+}
+.quantity-error,
+.unavailable {
+  color: #a52929;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.state-message {
+  padding: 48px 24px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  text-align: center;
+  line-height: 1.7;
+}
+.state-message h1 {
+  font-size: 24px;
+}
+@media (max-width: 700px) {
+  .product-detail {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+}

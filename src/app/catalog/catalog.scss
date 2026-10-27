@@ -130,6 +130,17 @@ select {
   border: 1px solid var(--color-border);
   border-radius: 10px;
 }
+.product-link {
+  display: block;
+  height: 100%;
+}
+.product-link:hover h3 {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+.product-link:focus-visible {
+  outline-offset: -4px;
+}
 .product-image {
   display: grid;
   place-items: center;

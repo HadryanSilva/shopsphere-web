@@ -1,0 +1,83 @@
+<a class="back-link" routerLink="/" queryParamsHandling="preserve" fragment="catalogo"
+  >← Voltar ao catálogo</a
+>
+@let current = state();
+<div [attr.aria-busy]="current.status === 'loading'">
+  @switch (current.status) {
+    @case ('loading') {
+      <p class="state-message" role="status">A carregar produto…</p>
+    }
+    @case ('not-found') {
+      <section class="state-message" role="status">
+        <h1>Produto não encontrado</h1>
+        <p>O produto que procura não existe ou já não está disponível neste endereço.</p>
+      </section>
+    }
+    @case ('error') {
+      <section class="state-message">
+        <h1>Não foi possível carregar o produto</h1>
+        <p role="alert">Tente novamente dentro de instantes.</p>
+        <button type="button" (click)="load()">Tentar novamente</button>
+      </section>
+    }
+    @case ('loaded') {
+      <article class="product-detail" aria-labelledby="product-title">
+        <div class="product-image">
+          @if (current.product.imageUrl && !imageFailed()) {
+            <img
+              [src]="current.product.imageUrl"
+              [alt]="current.product.name"
+              (error)="imageFailed.set(true)"
+            />
+          } @else {
+            <span>Imagem indisponível</span>
+          }
+        </div>
+        <div class="product-info">
+          <h1 id="product-title">{{ current.product.name }}</h1>
+          <p class="price">
+            {{ current.product.price | currency: current.product.currency : 'symbol' : '1.2-2' }}
+          </p>
+          <section aria-labelledby="description-title">
+            <h2 id="description-title">Sobre o produto</h2>
+            <p class="description">
+              {{ current.product.description?.trim() || 'Descrição indisponível.' }}
+            </p>
+          </section>
+          @if (current.product.status !== 'ACTIVE') {
+            <p class="unavailable" role="status">Este produto não está disponível para compra.</p>
+          }
+          <div class="purchase">
+            <label for="quantity">Quantidade</label>
+            <input
+              #quantityInput
+              id="quantity"
+              type="number"
+              min="1"
+              max="2147483647"
+              step="1"
+              [value]="quantity()"
+              (input)="quantity.set(quantityInput.value)"
+              [disabled]="current.product.status !== 'ACTIVE'"
+              [attr.aria-invalid]="quantityError() ? 'true' : null"
+              aria-describedby="quantity-error"
+            />
+            <p
+              id="quantity-error"
+              class="quantity-error"
+              [attr.role]="quantityError() ? 'alert' : null"
+            >
+              @if (quantityError()) {
+                Escolha uma quantidade inteira entre 1 e 2147483647.
+              }
+            </p>
+            <button type="button" disabled aria-describedby="purchase-note">
+              Adicionar ao carrinho
+            </button>
+            <p id="purchase-note" class="purchase-note">As compras estarão disponíveis em breve.</p>
+          </div>
+        </div>
+      </article>
+    }
+  }
+</div>

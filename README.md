@@ -1,6 +1,6 @@
 # ShopsphereWeb
 
-## Catálogo local (FE-02)
+## Loja local
 
 Execute `npm start` e abra `http://localhost:4200`. O servidor Angular encaminha
 `/api/**` para o Gateway em `http://localhost:8080`, conforme `proxy.conf.json`.
@@ -22,9 +22,18 @@ Categorias aguardam uma API de listagem; não há categorias fixas no frontend.
 As chamadas têm timeout de 10 segundos; falhas permitem nova tentativa manual
 com os filtros atuais. Nenhum produto de demonstração é carregado pela aplicação.
 
+Os cards abrem `/products/<uuid>`, que também pode ser acessado diretamente.
+O detalhe apresenta imagem, descrição e preço, com alternativas para conteúdo
+ausente, estado de produto inexistente e nova tentativa em falhas temporárias.
+O retorno ao catálogo preserva a busca, os preços, a ordenação e a página.
+A quantidade aceita inteiros positivos até o limite do Cart; a adição ao carrinho
+permanece desativada até FE-05/06. Não há consulta de estoque nem cálculo de frete.
+
 Em produção, `/api` deve ser encaminhado ao Gateway pela infraestrutura que
 serve o frontend. O proxy do Angular atua apenas no servidor de desenvolvimento.
 Não foram alteradas regras de CORS ou segurança no backend.
+O servidor de produção também deve devolver `index.html` nas rotas do frontend
+(fallback de SPA), para permitir abrir ou recarregar `/products/<uuid>` diretamente.
 
 Validação: `npm run build` e `npm test -- --watch=false`.
 
