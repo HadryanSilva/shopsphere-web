@@ -1,0 +1,5 @@
+{
+  "url": "http://localhost:8180",
+  "realm": "shopsphere",
+  "clientId": "shopsphere-web"
+}

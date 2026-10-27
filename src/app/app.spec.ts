@@ -4,12 +4,33 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { provideRouter, Router } from '@angular/router';
 import { routes } from './app.routes';
+import { signal } from '@angular/core';
+import { AuthService, AuthState } from './auth/auth.service';
 
 describe('App', () => {
+  const auth = {
+    state: signal<AuthState>({ status: 'anonymous' }),
+    error: signal(''),
+    actionPending: signal(false),
+    login: vi.fn(),
+    logout: vi.fn(),
+    initialize: vi.fn(),
+  };
   beforeEach(async () => {
+    auth.state.set({ status: 'anonymous' });
+    auth.error.set('');
+    auth.actionPending.set(false);
+    auth.login.mockClear();
+    auth.logout.mockClear();
+    auth.initialize.mockClear();
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter(routes)],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter(routes),
+        { provide: AuthService, useValue: auth },
+      ],
     }).compileComponents();
   });
 
@@ -54,12 +75,43 @@ describe('App', () => {
     expect(compiled.querySelector<HTMLInputElement>('input[type="search"]')?.disabled).toBe(false);
     const buttons = compiled.querySelectorAll<HTMLButtonElement>('.account-nav button');
     expect(buttons.length).toBe(2);
-    for (const button of buttons) {
-      expect(button.disabled).toBe(true);
-      expect(button.getAttribute('aria-label')).toBeTruthy();
-      expect(button.getAttribute('aria-describedby')).toBe('features-note');
-    }
-    expect(compiled.querySelector('#features-note')?.textContent).toContain('próximas etapas');
+    expect(buttons[0].disabled).toBe(false);
+    expect(buttons[0].getAttribute('aria-label')).toBe('Entrar na conta');
+    expect(buttons[1].disabled).toBe(true);
+    expect(buttons[1].getAttribute('aria-describedby')).toBe('features-note');
+    expect(compiled.querySelector('#features-note')?.textContent).toContain('próxima etapa');
+  });
+
+  it('offers login, then shows the account name and logout without enabling the cart', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    compiled.querySelector<HTMLButtonElement>('[aria-label="Entrar na conta"]')!.click();
+    expect(auth.login).toHaveBeenCalledOnce();
+    auth.state.set({ status: 'authenticated', username: 'Cliente' });
+    fixture.detectChanges();
+    expect(compiled.querySelector('.account-name')?.textContent).toBe('Cliente');
+    expect(compiled.querySelector('[aria-label="Entrar na conta"]')).toBeNull();
+    compiled.querySelector<HTMLButtonElement>('[aria-label="Terminar sessão"]')!.click();
+    expect(auth.logout).toHaveBeenCalledOnce();
+    expect(compiled.querySelector<HTMLButtonElement>('[aria-label="Carrinho"]')?.disabled).toBe(
+      true,
+    );
+  });
+
+  it('allows public navigation and authentication recovery when Keycloak is unavailable', async () => {
+    auth.state.set({ status: 'unavailable' });
+    auth.error.set('Não foi possível verificar a sessão.');
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('[role="alert"]')?.textContent).toContain('verificar a sessão');
+    expect(compiled.querySelector('input[type="search"]')).not.toBeNull();
+    expect(
+      compiled.querySelector<HTMLButtonElement>('[aria-label="Entrar na conta"]')?.disabled,
+    ).toBe(true);
+    compiled.querySelector<HTMLButtonElement>('.auth-message button')!.click();
+    expect(auth.initialize).toHaveBeenCalledOnce();
   });
 
   it('searches from the header, preserves price filters and resets the page', async () => {

@@ -37,6 +37,55 @@ O servidor de produção também deve devolver `index.html` nas rotas do fronten
 
 Validação: `npm run build` e `npm test -- --watch=false`.
 
+## Autenticação (FE-05)
+
+O cabeçalho permite entrar e sair pelo Keycloak. O fluxo usa Authorization Code
+com PKCE S256 e nonce, pelo adaptador oficial `keycloak-js` 26.2.5, inicializado
+antes do Router. Login e logout regressam à URL atual da loja, incluindo filtros
+e fragmento. A aplicação não aceita um destino externo fornecido por `returnUrl`.
+
+A configuração pública está em `public/auth-config.json`: servidor, realm e
+clientId. Não coloque passwords, tokens ou client secrets neste ficheiro.
+Em produção, substitua estes valores pelo servidor HTTPS e cliente público do
+ambiente; HTTP só é aceite para localhost/loopback. Sirva o ficheiro sem cache
+persistente e mantenha o fallback de SPA nas rotas do frontend.
+
+Configuração local consultada em 2026-10-27, sem alterações no Keycloak:
+
+- servidor `http://localhost:8180`, realm `shopsphere`, cliente `shopsphere-web`;
+- cliente público, Standard Flow ativo, Direct Access Grants inativo e PKCE S256;
+- Redirect URIs: `http://localhost:4200/*`; Web Origins: `http://localhost:4200`.
+
+O cliente precisa permitir os redirects da loja e de
+`http://localhost:4200/silent-check-sso.html`, além do retorno após logout.
+O ficheiro `public/silent-check-sso.html` participa apenas da verificação silenciosa.
+Ao mudar o domínio/porta, confirme essas configurações no ambiente correspondente.
+
+Access/refresh tokens ficam em memória no adaptador. Não são guardados pela
+aplicação em localStorage/sessionStorage; o adaptador gere os dados temporários
+do protocolo. O token expirado é renovado; se a renovação falhar, as credenciais
+locais são limpas e o utilizador pode entrar novamente. O catálogo público
+continua sem Bearer token e o carrinho aguarda FE-06.
+
+A verificação silenciosa de sessão depende das políticas de cookies do navegador.
+Se estiver bloqueada, o frontend permanece anónimo até clicar em Entrar, sem
+redirecionamento automático alternativo. O iframe de estado de sessão está
+desativado; logout noutra janela é detetado na próxima renovação do token.
+Falhas de configuração/inicialização mostram uma mensagem e permitem repetir,
+preservando a navegação pública.
+
+Teste manual pendente: abrir o catálogo ou detalhe com filtros, clicar em Entrar,
+autenticar no Keycloak, confirmar utilizador e retorno, recarregar e clicar em
+Sair. Repetir com cookies restritos e Keycloak indisponível. A configuração OIDC
+local foi consultada, mas não foi efetuado login real de um utilizador.
+
+Referência: [adaptador JavaScript do Keycloak](https://www.keycloak.org/securing-apps/javascript-adapter).
+
+O `npm audit` desta entrega identificou dois avisos preexistentes na cadeia de
+build: `vite` 8.3.0 interno ao `@angular/build` (high) e `@angular/build` (low). As versões desses pacotes não foram
+alteradas. A correção exige análise e autorização próprias; não foi executado
+`npm audit fix --force`.
+
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.4.
 
 ## Development server

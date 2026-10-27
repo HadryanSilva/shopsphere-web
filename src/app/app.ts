@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
+import { AuthService } from './auth/auth.service';
 
 @Component({
   imports: [RouterOutlet, RouterLink],
@@ -10,6 +11,7 @@ import { map } from 'rxjs';
   templateUrl: './app.html',
 })
 export class App {
+  protected readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   protected readonly router = inject(Router);
   protected readonly searchName = toSignal(

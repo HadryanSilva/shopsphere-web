@@ -10,13 +10,13 @@ Cada microtarefa termina com revisão do diff, validação pertinente e commit l
 | FE-02 | Catálogo real              | Confirmar DTO/paginação e ligar a listagem ao Gateway; cards com preço/moeda e imagem; carregamento, vazio, erro e nova tentativa. Sem produtos fictícios.                                      | Concluída |
 | FE-03 | Busca, filtros e paginação | Confirmar parâmetros e ordenações aceites; estado na URL, navegação entre páginas e filtros num painel no telemóvel. Validar como obter categorias antes de incluir esse filtro.                | Concluída |
 | FE-04 | Detalhe do produto         | Rota por ID, imagem, descrição, preço, quantidade e estados de carregamento/404/erro. Ação de compra depende de FE-05/06.                                                                       | Concluída |
-| FE-05 | Autenticação               | Verificar cliente Keycloak e configurar Authorization Code + PKCE, login/logout e retorno à navegação; definir dependências antes de adicionar bibliotecas.                                     | Pendente  |
+| FE-05 | Autenticação               | Verificar cliente Keycloak e configurar Authorization Code + PKCE, login/logout e retorno à navegação; definir dependências antes de adicionar bibliotecas.                                     | Concluída |
 | FE-06 | Carrinho                   | Integrar APIs autenticadas, adição, alteração e remoção; tratar 401/404/409 e falhas de integração, com valores vindos do backend.                                                              | Pendente  |
 
 ## Limites desta fase
 
 - FE-01 não consulta APIs: a área reservada não representa catálogo vazio nem falha de rede.
-- Conta e carrinho permanecem desativados até as respetivas integrações.
+- O carrinho permanece desativado até FE-06; login/logout fazem parte de FE-05.
 - A listagem de categorias não foi identificada na API; não fixar categorias ou IDs no frontend.
 - FE-02 usa /api relativo e proxy local para o Gateway; em produção o encaminhamento precisa ser configurado pela infraestrutura.
 - Checkout/detalhe do pedido e administração serão divididos em microtarefas próprias.
@@ -91,3 +91,32 @@ em navegador e a verificação manual em dispositivos permanecem pendentes.
   apresentou falha de inicialização na FE-03 e não foi executada nesta entrega.
 - Nenhuma alteração de backend, contratos, segurança, schema ou dependências.
   Produção precisa de fallback de SPA para acesso direto às rotas do frontend.
+
+## Validação de FE-05
+
+- Verificados descoberta OIDC local e cliente shopsphere-web em modo somente leitura:
+  público, Standard Flow ativo, Direct Grants inativo, PKCE S256, redirect
+  http://localhost:4200/* e origem http://localhost:4200. Sem alteração no Keycloak.
+- Adicionada apenas a dependência oficial keycloak-js 26.2.5, sem wrapper Angular.
+  Configuração pública em auth-config.json; nenhum secret ou token no frontend.
+- Inicialização antes do Router; Authorization Code/PKCE/nonce; check-sso silencioso
+  sem fallback de redirecionamento. Navegadores com cookies restritos podem exigir
+  clicar em Entrar após recarregar. Ficheiro silent-check-sso.html incluído no build.
+- Login/logout com retorno à URL atual da própria origem; filtros e fragmento
+  preservados, sem aceitar returnUrl externo. Nome da conta e botão Sair no cabeçalho.
+- Tokens apenas em memória, renovação na expiração e limpeza em caso de falha;
+  callbacks de clientes descartados não atualizam a sessão. Não há interceptor ou
+  envio de token nas consultas públicas. Carrinho não foi antecipado.
+- Falhas de autenticação não expõem detalhes internos; falha na inicialização
+  permite a navegação pública e nova tentativa, removendo dados OAuth da URL.
+- npm test -- --watch=false: 47 testes aprovados. npm run build: aprovado sem avisos.
+  Verificados ficheiros públicos no artefacto gerado e diff de dependências restrito.
+- npm audit: 2 avisos preexistentes em vite (high) e @angular/build (low), cujas
+  versões não mudaram; correção fora de escopo, sem upgrades ou audit fix automático.
+  npm também informou scripts de instalação bloqueados pela política local;
+  a política foi preservada e o build/testes passaram com as dependências existentes.
+- Pendente login/logout real num navegador, SSO sob políticas de cookies, revisão
+  visual e comportamento com indisponibilidade real do provedor. Os testes do
+  serviço usam o adaptador simulado; não substituem validação OIDC ponta a ponta.
+- Nenhuma alteração de backend, contratos HTTP, schema, permissões do Keycloak
+  ou credenciais. Documentados pré-requisitos e teste manual no README.

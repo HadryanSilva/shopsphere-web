@@ -90,7 +90,32 @@ svg {
 }
 .account-nav {
   display: flex;
+  align-items: center;
   gap: 24px;
+}
+.account-name {
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+.account-nav button:not(:disabled) {
+  cursor: pointer;
+  color: var(--color-primary);
+}
+.auth-message {
+  padding-block: 12px;
+  font-size: 14px;
+  color: #a52929;
+}
+.auth-message button {
+  padding: 10px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-primary);
+  background: var(--color-surface);
+  cursor: pointer;
 }
 .account-nav button {
   display: flex;
