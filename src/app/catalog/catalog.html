@@ -1,0 +1,49 @@
+@let current = state();
+<div [attr.aria-busy]="current.status === 'loading'">
+  @switch (current.status) {
+    @case ('loading') {
+      <p class="state-message" role="status">A carregar produtos…</p>
+    }
+    @case ('error') {
+      <div class="state-message">
+        <p role="alert">Não foi possível carregar os produtos. Tente novamente.</p>
+        <button type="button" (click)="load()">Tentar novamente</button>
+      </div>
+    }
+    @case ('loaded') {
+      @if (current.page.content.length === 0) {
+        <p class="state-message" role="status">Ainda não há produtos para apresentar.</p>
+      } @else {
+        <p class="result-count" role="status">
+          A mostrar {{ current.page.content.length }} de {{ current.page.totalElements }} produtos
+        </p>
+        <ul class="product-grid" aria-label="Produtos">
+          @for (product of current.page.content; track product.id) {
+            <li>
+              <article class="product-card">
+                <div class="product-image">
+                  @if (product.imageUrl && !failedImages().has(product.id)) {
+                    <img
+                      [src]="product.imageUrl"
+                      [alt]="product.name"
+                      loading="lazy"
+                      (error)="imageFailed(product.id)"
+                    />
+                  } @else {
+                    <span class="image-placeholder">Imagem indisponível</span>
+                  }
+                </div>
+                <div class="product-info">
+                  <h3>{{ product.name }}</h3>
+                  <p class="price">
+                    {{ product.price | currency: product.currency : 'symbol' : '1.2-2' }}
+                  </p>
+                </div>
+              </article>
+            </li>
+          }
+        </ul>
+      }
+    }
+  }
+</div>

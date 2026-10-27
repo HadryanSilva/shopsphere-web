@@ -1,5 +1,23 @@
 # ShopsphereWeb
 
+## Catálogo local (FE-02)
+
+Execute `npm start` e abra `http://localhost:4200`. O servidor Angular encaminha
+`/api/**` para o Gateway em `http://localhost:8080`, conforme `proxy.conf.json`.
+Gateway e Catalog (8081), com as suas dependências, precisam estar disponíveis;
+o frontend não os inicia. Não é necessário login para consultar produtos.
+
+A vitrine apresenta a primeira página (até 20 produtos ACTIVE, por nome), com
+preços e imagens recebidos da API. Paginação e filtros interativos ficam para
+FE-03. As chamadas têm timeout de 10 segundos; falhas permitem nova tentativa
+manual. Nenhum produto de demonstração é carregado pela aplicação.
+
+Em produção, `/api` deve ser encaminhado ao Gateway pela infraestrutura que
+serve o frontend. O proxy do Angular atua apenas no servidor de desenvolvimento.
+Não foram alteradas regras de CORS ou segurança no backend.
+
+Validação: `npm run build` e `npm test -- --watch=false`.
+
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.4.
 
 ## Development server

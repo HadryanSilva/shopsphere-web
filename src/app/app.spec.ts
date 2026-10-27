@@ -1,11 +1,32 @@
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
+  });
+
+  afterEach(() => {
+    const http = TestBed.inject(HttpTestingController);
+    http
+      .match((request) => request.url === '/api/v1/products')
+      .forEach((request) => {
+        request.flush({
+          content: [],
+          page: 0,
+          size: 20,
+          totalElements: 0,
+          totalPages: 0,
+          first: true,
+          last: true,
+        });
+      });
+    http.verify();
   });
 
   it('should create the app', () => {
