@@ -4,16 +4,20 @@ Direção aprovada: loja mult categoria, administração centralizada e visual
 sóbrio, minimalista e moderno. A página inicial é o catálogo.
 Cada microtarefa termina com revisão do diff, validação pertinente e commit local.
 
-| ID    | Microtarefa                | Critério de conclusão                                                                                                                                                                           | Estado    |
-| ----- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| FE-01 | Base visual da loja        | Cabeçalho, introdução curta, área reservada ao catálogo e rodapé responsivos; idioma português, foco visível e salto para o conteúdo. Recursos sem integração identificados como indisponíveis. | Concluída |
-| FE-02 | Catálogo real              | Confirmar DTO/paginação e ligar a listagem ao Gateway; cards com preço/moeda e imagem; carregamento, vazio, erro e nova tentativa. Sem produtos fictícios.                                      | Concluída |
-| FE-03 | Busca, filtros e paginação | Confirmar parâmetros e ordenações aceites; estado na URL, navegação entre páginas e filtros num painel no telemóvel. Validar como obter categorias antes de incluir esse filtro.                | Concluída |
-| FE-04 | Detalhe do produto         | Rota por ID, imagem, descrição, preço, quantidade e estados de carregamento/404/erro. Ação de compra depende de FE-05/06.                                                                       | Concluída |
-| FE-05 | Autenticação               | Verificar cliente Keycloak e configurar Authorization Code + PKCE, login/logout e retorno à navegação; definir dependências antes de adicionar bibliotecas.                                     | Concluída |
-| FE-06 | Carrinho                   | Integrar APIs autenticadas, adição, alteração e remoção; tratar 401/404/409 e falhas de integração, com valores vindos do backend.                                                              | Concluída |
+| ID    | Microtarefa                | Critério de conclusão                                                                                                                                                                           | Estado                                  |
+| ----- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| FE-01 | Base visual da loja        | Cabeçalho, introdução curta, área reservada ao catálogo e rodapé responsivos; idioma português, foco visível e salto para o conteúdo. Recursos sem integração identificados como indisponíveis. | Concluída                               |
+| FE-02 | Catálogo real              | Confirmar DTO/paginação e ligar a listagem ao Gateway; cards com preço/moeda e imagem; carregamento, vazio, erro e nova tentativa. Sem produtos fictícios.                                      | Concluída                               |
+| FE-03 | Busca, filtros e paginação | Confirmar parâmetros e ordenações aceites; estado na URL, navegação entre páginas e filtros num painel no telemóvel. Validar como obter categorias antes de incluir esse filtro.                | Concluída                               |
+| FE-04 | Detalhe do produto         | Rota por ID, imagem, descrição, preço, quantidade e estados de carregamento/404/erro. Ação de compra depende de FE-05/06.                                                                       | Concluída                               |
+| FE-05 | Autenticação               | Verificar cliente Keycloak e configurar Authorization Code + PKCE, login/logout e retorno à navegação; definir dependências antes de adicionar bibliotecas.                                     | Concluída                               |
+| FE-06 | Carrinho                   | Integrar APIs autenticadas, adição, alteração e remoção; tratar 401/404/409 e falhas de integração, com valores vindos do backend.                                                              | Concluída                               |
+| FE-07 | Validar integração real    | Iniciar serviços, verificar HTTP real, corrigir audiência e recolher confirmação manual de login/carrinho, documentando limites da automação.                                                   | Concluída com validação manual relatada |
 
 ## Limites desta fase
+
+A FE-07 — validar integração real — foi concluída com confirmação manual do utilizador. Evidência de arranque,
+HTTP, correção de audiência e limitações da validação em [INTEGRATION_FE07.md](INTEGRATION_FE07.md).
 
 - FE-01 não consulta APIs: a área reservada não representa catálogo vazio nem falha de rede.
 - Carrinho integrado em FE-06; checkout continua fora desta fase.

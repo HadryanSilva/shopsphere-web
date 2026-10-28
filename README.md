@@ -1,4 +1,4 @@
-# ShopsphereWeb
+﻿# ShopsphereWeb
 
 ## Loja local
 
@@ -137,10 +137,7 @@ cancelamento não garante que o servidor deixou de aplicar a alteração. No det
 use Consultar carrinho antes de repetir uma adição cujo resultado não foi confirmado.
 Login nunca submete uma adição automaticamente.
 
-Checkout continua desativado nesta fase. Teste manual pendente com Gateway/Cart
-em execução e login real: adicionar um produto, consultar, alterar quantidade,
-remover, testar sessão expirada/conflito e confirmar os valores devolvidos pelo
-servidor. A verificação ao Gateway local nesta entrega não conseguiu conectar.
+Checkout continua desativado nesta fase. A FE-07 iniciou os serviços locais, validou a conectividade e corrigiu a audiência do cliente web no Keycloak. O utilizador confirmou o funcionamento do carrinho. Evidências e limites da confirmação manual estão em [INTEGRATION_FE07.md](INTEGRATION_FE07.md); a revisão visual e de acessibilidade continua para FE-08.
 
 O `npm audit` desta entrega identificou dois avisos preexistentes na cadeia de
 build: `vite` 8.3.0 interno ao `@angular/build` (high) e `@angular/build` (low). As versões desses pacotes não foram
