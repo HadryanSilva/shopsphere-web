@@ -13,7 +13,7 @@ Cada microtarefa termina com revisão do diff, validação pertinente e commit l
 | FE-05 | Autenticação               | Verificar cliente Keycloak e configurar Authorization Code + PKCE, login/logout e retorno à navegação; definir dependências antes de adicionar bibliotecas.                                     | Concluída                               |
 | FE-06 | Carrinho                   | Integrar APIs autenticadas, adição, alteração e remoção; tratar 401/404/409 e falhas de integração, com valores vindos do backend.                                                              | Concluída                               |
 | FE-07 | Validar integração real    | Iniciar serviços, verificar HTTP real, corrigir audiência e recolher confirmação manual de login/carrinho, documentando limites da automação.                                                   | Concluída com validação manual relatada |
-| FE-08 | Revisão visual e acessibilidade | Rever catálogo, detalhe e carrinho em desktop/telemóvel, teclado, foco, rótulos e mensagens de validação; corrigir os problemas encontrados. | Em curso — correções implementadas; revisão no navegador pendente |
+| FE-08 | Revisão visual e acessibilidade | Rever catálogo, detalhe e carrinho em desktop/telemóvel, teclado, foco, rótulos e mensagens de validação; corrigir os problemas encontrados. | Concluída com validação manual relatada |
 
 ## Limites desta fase
 
@@ -169,10 +169,14 @@ em navegador e a verificação manual em dispositivos permanecem pendentes.
   com erro associado apenas ao campo afetado. npm run build: aprovado sem avisos.
   git diff --check: aprovado.
 - A automação do navegador falhou ao iniciar com helper_unknown_error:
-  setup refresh had errors. Não foram obtidas capturas nem executada navegação
-  por teclado ou leitura assistiva real. Isto não constitui uma auditoria completa
-  de acessibilidade; a FE-08 permanece em curso.
-- Para concluir: conferir catálogo, detalhe e carrinho a 320/375/768/1280 px,
+  setup refresh had errors. Pelo agente, não foram obtidas capturas nem executada
+  navegação por teclado ou leitura assistiva real.
+- O utilizador confirmou que o teste manual foi executado com sucesso após as
+  correções da FE-08. Microtarefa concluída com base nessa confirmação e nos
+  testes/build registrados acima. Não foram informados dispositivos, resoluções,
+  navegadores ou uso de leitor de ecrã; não se atribui cobertura individual a
+  esses cenários nem se declara uma auditoria completa de acessibilidade.
+- Checklist de referência para regressões: catálogo, detalhe e carrinho a 320/375/768/1280 px,
   zoom de 200%/400%, textos longos, filtros móveis, ordem de Tab, foco visível,
   salto para conteúdo e anúncio dos erros com leitor de ecrã. Confirmar ausência
   de cortes e rolagem horizontal e corrigir eventuais problemas observados.
