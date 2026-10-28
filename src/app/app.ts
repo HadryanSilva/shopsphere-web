@@ -22,7 +22,7 @@ export class App {
   protected search(name: string, event: Event) {
     event.preventDefault();
     void this.router.navigate(['/'], {
-      queryParams: { name: name.trim() || null, page: null },
+      queryParams: { name: name.trim() || null, page: null, quantity: null },
       queryParamsHandling: 'merge',
       fragment: 'catalogo',
     });

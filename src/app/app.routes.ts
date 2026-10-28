@@ -3,6 +3,11 @@ import { CatalogPage } from './catalog/catalog-page';
 
 export const routes: Routes = [
   {
+    path: 'cart',
+    loadComponent: () => import('./cart/cart-page').then((module) => module.CartPage),
+    title: 'Carrinho | ShopSphere',
+  },
+  {
     path: '',
     pathMatch: 'full',
     component: CatalogPage,

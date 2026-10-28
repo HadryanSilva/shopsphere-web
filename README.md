@@ -26,8 +26,10 @@ Os cards abrem `/products/<uuid>`, que também pode ser acessado diretamente.
 O detalhe apresenta imagem, descrição e preço, com alternativas para conteúdo
 ausente, estado de produto inexistente e nova tentativa em falhas temporárias.
 O retorno ao catálogo preserva a busca, os preços, a ordenação e a página.
-A quantidade aceita inteiros positivos até o limite do Cart; a adição ao carrinho
-permanece desativada até FE-05/06. Não há consulta de estoque nem cálculo de frete.
+A quantidade aceita inteiros positivos até o limite do Cart; utilizadores com
+sessão podem adicionar o produto. Sem sessão, Entrar preserva a quantidade na
+URL de retorno e exige confirmar a adição depois do login. Não há consulta de
+estoque nem cálculo de frete.
 
 Em produção, `/api` deve ser encaminhado ao Gateway pela infraestrutura que
 serve o frontend. O proxy do Angular atua apenas no servidor de desenvolvimento.
@@ -65,7 +67,8 @@ Access/refresh tokens ficam em memória no adaptador. Não são guardados pela
 aplicação em localStorage/sessionStorage; o adaptador gere os dados temporários
 do protocolo. O token expirado é renovado; se a renovação falhar, as credenciais
 locais são limpas e o utilizador pode entrar novamente. O catálogo público
-continua sem Bearer token e o carrinho aguarda FE-06.
+continua sem Bearer token. As operações do carrinho obtêm um token renovado
+apenas para os seus próprios endpoints, sem interceptor global.
 
 A verificação silenciosa de sessão depende das políticas de cookies do navegador.
 Se estiver bloqueada, o frontend permanece anónimo até clicar em Entrar, sem
@@ -80,6 +83,45 @@ Sair. Repetir com cookies restritos e Keycloak indisponível. A configuração O
 local foi consultada, mas não foi efetuado login real de um utilizador.
 
 Referência: [adaptador JavaScript do Keycloak](https://www.keycloak.org/securing-apps/javascript-adapter).
+
+## Carrinho (FE-06)
+
+O cabeçalho abre `/cart`; a página permite entrar quando não há sessão e, com
+sessão, consultar itens, guardar quantidades e remover produtos. Os dados não
+são persistidos no armazenamento do navegador: ao terminar a sessão, as consultas são canceladas e
+os itens deixam de ser apresentados. Uma nova sessão consulta o backend novamente.
+
+| Operação  | API pelo Gateway                            | Payload/resposta                                      |
+| --------- | ------------------------------------------- | ----------------------------------------------------- |
+| Consultar | GET `/api/v1/carts/me`                      | Carrinho com itens, subtotais, total estimado e moeda |
+| Adicionar | POST `/api/v1/carts/me/items`               | `{productId, quantity}`; sucesso 200                  |
+| Alterar   | PATCH `/api/v1/carts/me/items/{productId}`  | `{quantity}`; sucesso 204                             |
+| Remover   | DELETE `/api/v1/carts/me/items/{productId}` | Sem body; sucesso 204                                 |
+
+A identidade vem do JWT; o frontend não envia customerId, preços ou totais. A
+adição sem cartId usa o comportamento existente de obter/criar o carrinho ativo.
+Quantidade, preço unitário, subtotal, total estimado e moeda apresentados vêm
+da leitura do Cart. `totalItems` representa produtos distintos, não a soma de
+quantidades. PATCH/DELETE bem-sucedidos são seguidos por uma nova leitura.
+
+401 permite entrar novamente; 403, 404, 409 e falhas de integração têm mensagens
+próprias, sem mostrar detalhes internos. O 409 inclui conflitos de produto,
+quantidade ou checkout em curso; a leitura pública não expõe o bloqueio de checkout.
+O GET 404 só é considerado vazio quando Problem Details contém `detail` igual
+a `Cart not found`, conforme o contrato atual. Um produto ausente também pode
+causar 404 e é apresentado como erro. Não existe código de erro estruturado para
+distinguir estes casos; se a leitura enriquecida falhar, não há lista parcial de itens.
+
+As escritas não têm repetição automática. A interface bloqueia cliques concorrentes;
+após falha exige consultar o carrinho antes de uma nova tentativa. Um timeout ou
+cancelamento não garante que o servidor deixou de aplicar a alteração. No detalhe,
+use Consultar carrinho antes de repetir uma adição cujo resultado não foi confirmado.
+Login nunca submete uma adição automaticamente.
+
+Checkout continua desativado nesta fase. Teste manual pendente com Gateway/Cart
+em execução e login real: adicionar um produto, consultar, alterar quantidade,
+remover, testar sessão expirada/conflito e confirmar os valores devolvidos pelo
+servidor. A verificação ao Gateway local nesta entrega não conseguiu conectar.
 
 O `npm audit` desta entrega identificou dois avisos preexistentes na cadeia de
 build: `vite` 8.3.0 interno ao `@angular/build` (high) e `@angular/build` (low). As versões desses pacotes não foram

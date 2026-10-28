@@ -51,13 +51,19 @@
           <span>Entrar</span>
         </button>
       }
-      <button type="button" disabled aria-label="Carrinho" aria-describedby="features-note">
+      <a
+        class="cart-link"
+        routerLink="/cart"
+        queryParamsHandling="merge"
+        [queryParams]="{ quantity: null }"
+        aria-label="Carrinho"
+      >
         <svg aria-hidden="true" viewBox="0 0 24 24">
           <path d="M5 7h14l1 14H4L5 7Z" />
           <path d="M8 7V6a4 4 0 0 1 8 0v1" />
         </svg>
         <span>Carrinho</span>
-      </button>
+      </a>
     </nav>
   </div>
 </header>
@@ -73,7 +79,6 @@
 
 <main id="conteudo" class="container main-content" tabindex="-1">
   <router-outlet />
-  <p id="features-note" class="features-note">O carrinho estará disponível numa próxima etapa.</p>
 </main>
 
 <footer class="site-footer">

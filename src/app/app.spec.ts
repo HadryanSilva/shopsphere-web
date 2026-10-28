@@ -74,15 +74,13 @@ describe('App', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector<HTMLInputElement>('input[type="search"]')?.disabled).toBe(false);
     const buttons = compiled.querySelectorAll<HTMLButtonElement>('.account-nav button');
-    expect(buttons.length).toBe(2);
+    expect(buttons.length).toBe(1);
     expect(buttons[0].disabled).toBe(false);
     expect(buttons[0].getAttribute('aria-label')).toBe('Entrar na conta');
-    expect(buttons[1].disabled).toBe(true);
-    expect(buttons[1].getAttribute('aria-describedby')).toBe('features-note');
-    expect(compiled.querySelector('#features-note')?.textContent).toContain('próxima etapa');
+    expect(compiled.querySelector('[aria-label="Carrinho"]')?.getAttribute('href')).toBe('/cart');
   });
 
-  it('offers login, then shows the account name and logout without enabling the cart', async () => {
+  it('offers login, shows the account name and logout and links to the cart', async () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
@@ -94,9 +92,7 @@ describe('App', () => {
     expect(compiled.querySelector('[aria-label="Entrar na conta"]')).toBeNull();
     compiled.querySelector<HTMLButtonElement>('[aria-label="Terminar sessão"]')!.click();
     expect(auth.logout).toHaveBeenCalledOnce();
-    expect(compiled.querySelector<HTMLButtonElement>('[aria-label="Carrinho"]')?.disabled).toBe(
-      true,
-    );
+    expect(compiled.querySelector('[aria-label="Carrinho"]')?.getAttribute('href')).toBe('/cart');
   });
 
   it('allows public navigation and authentication recovery when Keycloak is unavailable', async () => {

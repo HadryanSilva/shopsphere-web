@@ -88,6 +88,15 @@ button:disabled {
 .purchase button {
   display: block;
 }
+.view-cart {
+  display: inline-block;
+  margin-top: 16px;
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+.add-success {
+  color: #22613d;
+}
 .purchase-note {
   font-size: 12px;
   color: var(--color-muted);

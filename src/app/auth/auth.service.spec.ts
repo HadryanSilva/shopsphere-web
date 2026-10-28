@@ -209,6 +209,34 @@ describe('AuthService', () => {
     expect(client.updateToken).toHaveBeenCalledWith(30);
   });
 
+  it('provides a refreshed access token only while authenticated', async () => {
+    await initialize();
+    expect(await auth.getAccessToken()).toBeUndefined();
+    expect(client.updateToken).not.toHaveBeenCalled();
+    client.authenticated = true;
+    client.token = 'old-token';
+    client.onAuthSuccess?.();
+    client.updateToken.mockImplementation(async () => {
+      client.token = 'renewed-token';
+      return true;
+    });
+    expect(await auth.getAccessToken()).toBe('renewed-token');
+    expect(client.updateToken).toHaveBeenCalledWith(30);
+    client.updateToken.mockRejectedValue(new Error('Expired'));
+    expect(await auth.getAccessToken()).toBeUndefined();
+    expect(auth.state().status).toBe('anonymous');
+  });
+
+  it('can explicitly reauthenticate when a resource rejects the current session', async () => {
+    client.authenticated = true;
+    await initialize();
+    await auth.login(true);
+    expect(client.login).toHaveBeenCalledWith({
+      redirectUri: document.location.href,
+      prompt: 'login',
+    });
+  });
+
   it('clears expired credentials after refresh failure and offers login again', async () => {
     client.authenticated = true;
     client.token = 'test-token';

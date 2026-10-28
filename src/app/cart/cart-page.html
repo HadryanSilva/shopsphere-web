@@ -1,0 +1,144 @@
+<a class="back-link" routerLink="/" queryParamsHandling="preserve" fragment="catalogo"
+  >← Continuar a explorar</a
+>
+<div class="page-heading">
+  <h1>O seu carrinho</h1>
+  @if (auth.state().status === 'authenticated') {
+    <button
+      class="secondary"
+      type="button"
+      [disabled]="busy() || state().status === 'loading'"
+      (click)="load()"
+    >
+      Atualizar carrinho
+    </button>
+  }
+</div>
+@let current = state();
+@if (operationError()) {
+  <p class="error-message" role="alert">{{ operationError() }}</p>
+  @if (operationUnauthorized()) {
+    <button type="button" (click)="auth.login(true)" [disabled]="auth.actionPending()">
+      Entrar novamente
+    </button>
+  }
+}
+<div [attr.aria-busy]="current.status === 'loading' || busy()">
+  @switch (current.status) {
+    @case ('sign-in') {
+      <section class="state-message">
+        <h2>Entre para consultar o seu carrinho</h2>
+        <p>Os seus produtos ficam associados à sua conta.</p>
+        <button
+          type="button"
+          [disabled]="auth.state().status !== 'anonymous' || auth.actionPending()"
+          (click)="auth.login()"
+        >
+          Entrar
+        </button>
+      </section>
+    }
+    @case ('loading') {
+      <p class="state-message" role="status">A carregar carrinho…</p>
+    }
+    @case ('empty') {
+      <p class="state-message" role="status">O seu carrinho ainda está vazio.</p>
+    }
+    @case ('error') {
+      <section class="state-message">
+        <p role="alert">{{ current.message }}</p>
+        @if (current.unauthorized) {
+          <button type="button" (click)="auth.login(true)" [disabled]="auth.actionPending()">
+            Entrar novamente
+          </button>
+        } @else {
+          <button type="button" (click)="load()">Tentar novamente</button>
+        }
+      </section>
+    }
+    @case ('loaded') {
+      @if (current.cart.items.length === 0) {
+        <p class="state-message" role="status">O seu carrinho ainda está vazio.</p>
+      } @else {
+        @if (current.cart.status !== 'ACTIVE') {
+          <p role="status">Este carrinho já não está ativo. Atualize o carrinho.</p>
+        }
+        <div class="cart-layout">
+          <ul class="cart-items" aria-label="Itens do carrinho">
+            @for (item of current.cart.items; track item.productId) {
+              <li class="cart-item">
+                <div>
+                  <h2>
+                    <a
+                      [routerLink]="['/products', item.productId]"
+                      queryParamsHandling="preserve"
+                      >{{ item.productName }}</a
+                    >
+                  </h2>
+                  <p>
+                    {{ item.unitPrice | currency: current.cart.currency : 'symbol' : '1.2-2' }} por
+                    unidade
+                  </p>
+                </div>
+                <form (submit)="update(item.productId, qty.value, $event)">
+                  <label [for]="'quantity-' + item.productId"
+                    >Quantidade de {{ item.productName }}</label
+                  >
+                  <div class="item-actions">
+                    <input
+                      #qty
+                      [id]="'quantity-' + item.productId"
+                      type="number"
+                      min="1"
+                      max="2147483647"
+                      step="1"
+                      [value]="item.quantity"
+                      [disabled]="busy() || needsReload() || current.cart.status !== 'ACTIVE'"
+                    />
+                    <button
+                      type="submit"
+                      [disabled]="busy() || needsReload() || current.cart.status !== 'ACTIVE'"
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      class="secondary"
+                      type="button"
+                      [attr.aria-label]="'Remover ' + item.productName"
+                      [disabled]="busy() || needsReload() || current.cart.status !== 'ACTIVE'"
+                      (click)="remove(item.productId)"
+                    >
+                      Remover
+                    </button>
+                  </div>
+                </form>
+                <p class="subtotal">
+                  Subtotal:
+                  {{ item.subTotal | currency: current.cart.currency : 'symbol' : '1.2-2' }}
+                </p>
+              </li>
+            }
+          </ul>
+          <aside class="summary" aria-label="Resumo do carrinho">
+            <h2>Resumo</h2>
+            <p>
+              {{ current.cart.totalItems }}
+              {{ current.cart.totalItems === 1 ? 'produto diferente' : 'produtos diferentes' }}
+            </p>
+            <p class="estimated-total">
+              Total estimado
+              <strong>{{
+                current.cart.estimatedTotal | currency: current.cart.currency : 'symbol' : '1.2-2'
+              }}</strong>
+            </p>
+            <p>Os preços são atuais e serão revalidados no checkout.</p>
+            <button type="button" disabled aria-describedby="checkout-note">
+              Continuar para checkout
+            </button>
+            <p id="checkout-note">O checkout estará disponível numa próxima etapa.</p>
+          </aside>
+        </div>
+      }
+    }
+  }
+</div>

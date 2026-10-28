@@ -108,18 +108,35 @@ export class AuthService {
     }
   }
 
-  async login(): Promise<void> {
+  async login(force = false): Promise<void> {
     const client = this.client;
-    if (!client || this.pending() || this.state().status !== 'anonymous') return;
+    if (
+      !client ||
+      this.pending() ||
+      (this.state().status !== 'anonymous' && !(force && this.state().status === 'authenticated'))
+    )
+      return;
     this.pending.set(true);
     this.authError.set('');
     try {
-      await client.login({ redirectUri: this.redirectUri() });
+      await client.login({
+        redirectUri: this.redirectUri(),
+        ...(force ? { prompt: 'login' as const } : {}),
+      });
     } catch {
       this.authError.set('Não foi possível iniciar a sessão. Tente novamente.');
     } finally {
       this.pending.set(false);
     }
+  }
+
+  async getAccessToken(): Promise<string | undefined> {
+    const client = this.client;
+    if (!client || this.state().status !== 'authenticated') return undefined;
+    await this.refreshSession(client);
+    return this.client === client && this.state().status === 'authenticated' && client.authenticated
+      ? client.token
+      : undefined;
   }
 
   async logout(): Promise<void> {

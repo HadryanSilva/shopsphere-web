@@ -11,12 +11,12 @@ Cada microtarefa termina com revisão do diff, validação pertinente e commit l
 | FE-03 | Busca, filtros e paginação | Confirmar parâmetros e ordenações aceites; estado na URL, navegação entre páginas e filtros num painel no telemóvel. Validar como obter categorias antes de incluir esse filtro.                | Concluída |
 | FE-04 | Detalhe do produto         | Rota por ID, imagem, descrição, preço, quantidade e estados de carregamento/404/erro. Ação de compra depende de FE-05/06.                                                                       | Concluída |
 | FE-05 | Autenticação               | Verificar cliente Keycloak e configurar Authorization Code + PKCE, login/logout e retorno à navegação; definir dependências antes de adicionar bibliotecas.                                     | Concluída |
-| FE-06 | Carrinho                   | Integrar APIs autenticadas, adição, alteração e remoção; tratar 401/404/409 e falhas de integração, com valores vindos do backend.                                                              | Pendente  |
+| FE-06 | Carrinho                   | Integrar APIs autenticadas, adição, alteração e remoção; tratar 401/404/409 e falhas de integração, com valores vindos do backend.                                                              | Concluída |
 
 ## Limites desta fase
 
 - FE-01 não consulta APIs: a área reservada não representa catálogo vazio nem falha de rede.
-- O carrinho permanece desativado até FE-06; login/logout fazem parte de FE-05.
+- Carrinho integrado em FE-06; checkout continua fora desta fase.
 - A listagem de categorias não foi identificada na API; não fixar categorias ou IDs no frontend.
 - FE-02 usa /api relativo e proxy local para o Gateway; em produção o encaminhamento precisa ser configurado pela infraestrutura.
 - Checkout/detalhe do pedido e administração serão divididos em microtarefas próprias.
@@ -120,3 +120,32 @@ em navegador e a verificação manual em dispositivos permanecem pendentes.
   serviço usam o adaptador simulado; não substituem validação OIDC ponta a ponta.
 - Nenhuma alteração de backend, contratos HTTP, schema, permissões do Keycloak
   ou credenciais. Documentados pré-requisitos e teste manual no README.
+
+## Validação de FE-06
+
+- Rota /cart com consulta autenticada, itens, quantidades, remoção e resumo.
+  Visitantes veem convite para entrar, sem requisição ao Cart ou criação implícita.
+- CartApi obtém token renovado do AuthService apenas para /api/v1/carts/me e seus
+  itens. Sem interceptor global, tokens em logs/storage ou envio ao Catalog.
+- POST envia productId/quantity, sem cartId para usar a criação/seleção existente
+  no servidor. PATCH envia quantity; DELETE não envia body. Sem identidade, preço
+  ou total no payload. Valores monetários e contagem distinta vêm do backend.
+- Adição no detalhe com estados pendente/sucesso/erro e bloqueio de duplicação
+  enquanto pendente. Login preserva a quantidade no parâmetro quantity da URL;
+  após autenticar é necessária confirmação explícita, sem replay de POST.
+- Alterar/remover usa nova leitura após 204; não há atualização otimista de totais.
+  Falhas de escrita bloqueiam novas alterações até consultar o estado atual.
+  Cancelamento/timeout não implica rollback no backend; não há retry automático.
+- 401 oferece reautenticação explícita; 403/404/409/falhas de rede ou integração
+  exibem mensagens seguras. GET 404 só é vazio para detail Cart not found; produto
+  ausente não é disfarçado de carrinho vazio. Dependência desse texto documentada.
+- Consultas/escritas são canceladas ao sair ou terminar a sessão, e os dados do
+  carrinho deixam de ser apresentados. Nova sessão exige nova leitura, sem cache
+  persistente. Renovação de token não provoca ciclos de consulta.
+- npm test -- --watch=false: 70 testes aprovados. npm run build: aprovado sem avisos.
+  Cobertos contratos/payloads, token escopado, sessão, quantidades, 404 ambíguo,
+  401/403/409/503, falha de rede, ausência de replay e releitura dos totais.
+- Gateway localhost:8080 indisponível na verificação por GET. Integração autenticada
+  ponta a ponta, login real e revisão visual responsiva permanecem pendentes.
+- Checkout permanece desativado. Nenhuma alteração de backend, contratos, schema,
+  Keycloak ou dependências; avisos de audit já registrados na FE-05 não foram tratados.

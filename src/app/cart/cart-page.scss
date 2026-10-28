@@ -1,0 +1,125 @@
+:host {
+  display: block;
+}
+.back-link {
+  display: inline-block;
+  margin-bottom: 24px;
+  color: var(--color-primary);
+  font-size: 14px;
+}
+.page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+h1 {
+  margin: 0;
+  font-size: 32px;
+  letter-spacing: -1px;
+}
+h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+a:hover {
+  text-decoration: underline;
+}
+button {
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--color-primary);
+  color: white;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.secondary {
+  background: #edf1f7;
+  color: var(--color-text);
+}
+.cart-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  align-items: start;
+  gap: 32px;
+}
+.cart-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.cart-item,
+.summary,
+.state-message {
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+}
+.cart-item {
+  margin-bottom: 16px;
+}
+.cart-item p,
+.summary p {
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+label {
+  display: block;
+  font-size: 12px;
+  margin: 20px 0 10px;
+  overflow-wrap: anywhere;
+}
+.item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+input {
+  width: 100px;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font: inherit;
+}
+.cart-item .subtotal {
+  margin: 20px 0 0;
+  color: var(--color-text);
+  font-weight: 600;
+}
+.summary .estimated-total {
+  color: var(--color-text);
+}
+.estimated-total strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 26px;
+}
+.summary button {
+  width: 100%;
+  margin-top: 20px;
+}
+.state-message {
+  text-align: center;
+  line-height: 1.7;
+}
+.error-message {
+  padding: 16px;
+  border: 1px solid #a52929;
+  border-radius: 6px;
+  color: #a52929;
+  line-height: 1.6;
+}
+@media (max-width: 850px) {
+  .cart-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

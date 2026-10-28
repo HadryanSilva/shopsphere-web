@@ -1,4 +1,9 @@
-<a class="back-link" routerLink="/" queryParamsHandling="preserve" fragment="catalogo"
+<a
+  class="back-link"
+  routerLink="/"
+  queryParamsHandling="merge"
+  [queryParams]="{ quantity: null }"
+  fragment="catalogo"
   >← Voltar ao catálogo</a
 >
 @let current = state();
@@ -58,7 +63,7 @@
               step="1"
               [value]="quantity()"
               (input)="quantity.set(quantityInput.value)"
-              [disabled]="current.product.status !== 'ACTIVE'"
+              [disabled]="current.product.status !== 'ACTIVE' || adding()"
               [attr.aria-invalid]="quantityError() ? 'true' : null"
               aria-describedby="quantity-error"
             />
@@ -71,10 +76,57 @@
                 Escolha uma quantidade inteira entre 1 e 2147483647.
               }
             </p>
-            <button type="button" disabled aria-describedby="purchase-note">
-              Adicionar ao carrinho
-            </button>
-            <p id="purchase-note" class="purchase-note">As compras estarão disponíveis em breve.</p>
+            @if (auth.state().status === 'authenticated') {
+              <button
+                type="button"
+                class="add-button"
+                [disabled]="
+                  current.product.status !== 'ACTIVE' ||
+                  quantityError() ||
+                  adding() ||
+                  needsCartCheck()
+                "
+                (click)="addToCart()"
+              >
+                {{ adding() ? 'A adicionar…' : 'Adicionar ao carrinho' }}
+              </button>
+            } @else {
+              <button
+                type="button"
+                [disabled]="
+                  current.product.status !== 'ACTIVE' ||
+                  quantityError() ||
+                  auth.state().status !== 'anonymous' ||
+                  auth.actionPending()
+                "
+                (click)="loginToAdd()"
+              >
+                Entrar para adicionar
+              </button>
+              <p class="purchase-note">
+                Após entrar, confirme a adição. Nenhuma compra é efetuada automaticamente.
+              </p>
+            }
+            @if (added()) {
+              <p role="status" class="add-success">Produto adicionado ao carrinho.</p>
+            }
+            @if (addError()) {
+              <p role="alert" class="quantity-error">{{ addError() }}</p>
+              @if (addUnauthorized()) {
+                <button type="button" (click)="loginToAdd(true)" [disabled]="auth.actionPending()">
+                  Entrar novamente
+                </button>
+              }
+            }
+            @if (added() || needsCartCheck()) {
+              <a
+                class="view-cart"
+                routerLink="/cart"
+                queryParamsHandling="merge"
+                [queryParams]="{ quantity: null }"
+                >Consultar carrinho</a
+              >
+            }
           </div>
         </div>
       </article>

@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
+import { signal } from '@angular/core';
+import { AuthService, AuthState } from '../auth/auth.service';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from '../app.routes';
 import { Product } from '../catalog/catalog-api';
@@ -24,10 +26,25 @@ const secondId = '20000000-0000-0000-0000-000000000002';
 describe('ProductDetail', () => {
   let harness: RouterTestingHarness;
   let http: HttpTestingController;
+  const auth = {
+    state: signal<AuthState>({ status: 'anonymous' }),
+    actionPending: signal(false),
+    login: vi.fn(),
+    getAccessToken: vi.fn(async () => 'test-token'),
+  };
 
   beforeEach(async () => {
+    auth.state.set({ status: 'anonymous' });
+    auth.actionPending.set(false);
+    auth.login.mockClear();
+    auth.getAccessToken.mockClear();
     await TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter(routes)],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter(routes),
+        { provide: AuthService, useValue: auth },
+      ],
     }).compileComponents();
     http = TestBed.inject(HttpTestingController);
     harness = await RouterTestingHarness.create();
@@ -152,8 +169,8 @@ describe('ProductDetail', () => {
     input.dispatchEvent(new Event('input'));
     harness.detectChanges();
     expect(input.getAttribute('aria-invalid')).toBeNull();
-    expect(element().querySelector<HTMLButtonElement>('.purchase button')?.disabled).toBe(true);
-    expect(element().textContent).toContain('As compras estarão disponíveis em breve');
+    expect(element().querySelector<HTMLButtonElement>('.purchase button')?.disabled).toBe(false);
+    expect(element().textContent).toContain('Entrar para adicionar');
     http.expectNone((req) => req.url.includes('/carts'));
   });
 
@@ -204,6 +221,83 @@ describe('ProductDetail', () => {
         first: true,
         last: true,
       });
+  });
+
+  it('adds the selected quantity once with the user token and no client prices or identity', async () => {
+    auth.state.set({ status: 'authenticated', username: 'Cliente' });
+    await open();
+    request().flush(product);
+    harness.detectChanges();
+    const quantity = element().querySelector<HTMLInputElement>('#quantity')!;
+    quantity.value = '3';
+    quantity.dispatchEvent(new Event('input'));
+    harness.detectChanges();
+    const add = element().querySelector<HTMLButtonElement>('.add-button')!;
+    add.click();
+    add.click();
+    await harness.fixture.whenStable();
+    const pending = http.expectOne('/api/v1/carts/me/items');
+    expect(pending.request.method).toBe('POST');
+    expect(pending.request.body).toEqual({ productId: product.id, quantity: 3 });
+    expect(pending.request.headers.get('Authorization')).toBe('Bearer test-token');
+    pending.flush({
+      cartId: 'cart-id',
+      productId: product.id,
+      quantity: 3,
+      message: 'Item added to cart',
+    });
+    harness.detectChanges();
+    expect(element().textContent).toContain('Produto adicionado ao carrinho');
+    expect(element().querySelector('.view-cart')?.getAttribute('href')).toBe('/cart');
+  });
+
+  it('requires consulting the cart after an ambiguous failure instead of repeating the POST', async () => {
+    auth.state.set({ status: 'authenticated', username: 'Cliente' });
+    await open();
+    request().flush(product);
+    harness.detectChanges();
+    element().querySelector<HTMLButtonElement>('.add-button')!.click();
+    await harness.fixture.whenStable();
+    http.expectOne('/api/v1/carts/me/items').error(new ProgressEvent('error'));
+    harness.detectChanges();
+    expect(element().textContent).toContain('Não foi possível confirmar a alteração');
+    const button = element().querySelector<HTMLButtonElement>('.add-button')!;
+    expect(button.disabled).toBe(true);
+    button.click();
+    http.expectNone('/api/v1/carts/me/items');
+    expect(element().querySelector('.view-cart')).not.toBeNull();
+  });
+
+  it('preserves quantity for login without automatically adding after authentication', async () => {
+    await open(product.id, '?name=Livro&page=2');
+    request().flush(product);
+    harness.detectChanges();
+    const input = element().querySelector<HTMLInputElement>('#quantity')!;
+    input.value = '4';
+    input.dispatchEvent(new Event('input'));
+    harness.detectChanges();
+    element().querySelector<HTMLButtonElement>('.purchase button')!.click();
+    await harness.fixture.whenStable();
+    expect(auth.login).toHaveBeenCalledOnce();
+    const query = TestBed.inject(Router).parseUrl(TestBed.inject(Router).url).queryParams;
+    expect(query).toEqual({ name: 'Livro', page: '2', quantity: '4' });
+    auth.state.set({ status: 'authenticated', username: 'Cliente' });
+    harness.detectChanges();
+    http.expectNone((req) => req.url.includes('/carts'));
+  });
+
+  it('restores the quantity in a login return URL and cancels additions on logout', async () => {
+    auth.state.set({ status: 'authenticated', username: 'Cliente' });
+    await open(product.id, '?quantity=4');
+    request().flush(product);
+    harness.detectChanges();
+    expect(element().querySelector<HTMLInputElement>('#quantity')?.value).toBe('4');
+    element().querySelector<HTMLButtonElement>('.add-button')!.click();
+    await harness.fixture.whenStable();
+    const pending = http.expectOne('/api/v1/carts/me/items');
+    auth.state.set({ status: 'anonymous' });
+    await harness.fixture.whenStable();
+    expect(pending.cancelled).toBe(true);
   });
 
   it('opens a card from a filtered catalog without losing the return query', async () => {

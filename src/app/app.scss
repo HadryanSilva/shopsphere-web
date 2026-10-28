@@ -117,7 +117,8 @@ svg {
   background: var(--color-surface);
   cursor: pointer;
 }
-.account-nav button {
+.account-nav button,
+.cart-link {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -130,10 +131,6 @@ svg {
 .main-content {
   flex: 1;
   padding-block: 36px 64px;
-}
-.features-note {
-  margin-top: 16px;
-  font-size: 12px;
 }
 .site-footer {
   border-top: 1px solid var(--color-border);
