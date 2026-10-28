@@ -80,7 +80,7 @@
                     unidade
                   </p>
                 </div>
-                <form (submit)="update(item.productId, qty.value, $event)">
+                <form novalidate (submit)="update(item.productId, qty.value, $event)">
                   <label [for]="'quantity-' + item.productId"
                     >Quantidade de {{ item.productName }}</label
                   >
@@ -93,10 +93,20 @@
                       max="2147483647"
                       step="1"
                       [value]="item.quantity"
+                      [attr.aria-invalid]="
+                        invalidQuantityProduct() === item.productId ? 'true' : null
+                      "
+                      [attr.aria-describedby]="
+                        invalidQuantityProduct() === item.productId
+                          ? 'quantity-error-' + item.productId
+                          : null
+                      "
+                      (input)="clearQuantityError(item.productId)"
                       [disabled]="busy() || needsReload() || current.cart.status !== 'ACTIVE'"
                     />
                     <button
                       type="submit"
+                      [attr.aria-label]="'Guardar quantidade de ' + item.productName"
                       [disabled]="busy() || needsReload() || current.cart.status !== 'ACTIVE'"
                     >
                       Guardar
@@ -111,6 +121,11 @@
                       Remover
                     </button>
                   </div>
+                  @if (invalidQuantityProduct() === item.productId) {
+                    <p [id]="'quantity-error-' + item.productId" class="error-message" role="alert">
+                      Escolha uma quantidade inteira entre 1 e 2147483647.
+                    </p>
+                  }
                 </form>
                 <p class="subtotal">
                   Subtotal:

@@ -237,4 +237,37 @@ describe('CartPage', () => {
     expect(element().textContent).not.toContain('Subtotal');
     expect(element().querySelector('input')).toBeNull();
   });
+
+  it('identifies each save action and associates quantity errors only with the affected item', async () => {
+    await open();
+    get().flush({
+      ...cart,
+      items: [
+        ...cart.items,
+        { ...cart.items[0], productId: 'second-product', productName: 'Caneta' },
+      ],
+      totalItems: 2,
+    });
+    harness.detectChanges();
+    const inputs = element().querySelectorAll<HTMLInputElement>('.cart-item input');
+    expect(element().querySelector('[aria-label="Guardar quantidade de Livro"]')).not.toBeNull();
+    expect(element().querySelector('[aria-label="Guardar quantidade de Caneta"]')).not.toBeNull();
+    inputs[1].value = '1.5';
+    element()
+      .querySelectorAll('form')[1]
+      .dispatchEvent(new Event('submit', { cancelable: true }));
+    harness.detectChanges();
+    expect(inputs[0].hasAttribute('aria-invalid')).toBe(false);
+    expect(inputs[1].getAttribute('aria-invalid')).toBe('true');
+    const errorId = inputs[1].getAttribute('aria-describedby')!;
+    expect(element().querySelector(`#${errorId}`)?.textContent).toContain('quantidade inteira');
+    http.expectNone((req) => req.method === 'PATCH');
+
+    inputs[1].value = '3';
+    inputs[1].dispatchEvent(new Event('input'));
+    harness.detectChanges();
+    expect(inputs[1].hasAttribute('aria-invalid')).toBe(false);
+    expect(inputs[1].hasAttribute('aria-describedby')).toBe(false);
+    expect(element().querySelector(`#${errorId}`)).toBeNull();
+  });
 });

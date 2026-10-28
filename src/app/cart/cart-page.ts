@@ -45,12 +45,14 @@ export class CartPage {
   protected readonly needsReload = signal(false);
   protected readonly operationError = signal('');
   protected readonly operationUnauthorized = signal(false);
+  protected readonly invalidQuantityProduct = signal<string | null>(null);
 
   constructor() {
     this.sessionChanges
       .pipe(
         switchMap((status) => {
           this.operationError.set('');
+          this.invalidQuantityProduct.set(null);
           this.needsReload.set(false);
           this.operationUnauthorized.set(false);
           if (status !== 'authenticated') return of<CartState>({ status: 'sign-in' });
@@ -85,6 +87,7 @@ export class CartPage {
 
   protected load() {
     if (this.busy()) return;
+    this.invalidQuantityProduct.set(null);
     this.operationError.set('');
     this.operationUnauthorized.set(false);
     this.reload.next();
@@ -93,10 +96,15 @@ export class CartPage {
   protected update(productId: string, quantity: string, event: Event) {
     event.preventDefault();
     if (!/^\d+$/.test(quantity) || Number(quantity) < 1 || Number(quantity) > 2147483647) {
-      this.operationError.set('Escolha uma quantidade inteira entre 1 e 2147483647.');
+      this.invalidQuantityProduct.set(productId);
       return;
     }
+    this.invalidQuantityProduct.set(null);
     this.mutate(this.api.update(productId, Number(quantity)));
+  }
+
+  protected clearQuantityError(productId: string) {
+    if (this.invalidQuantityProduct() === productId) this.invalidQuantityProduct.set(null);
   }
 
   protected remove(productId: string) {

@@ -13,6 +13,7 @@ Cada microtarefa termina com revisão do diff, validação pertinente e commit l
 | FE-05 | Autenticação               | Verificar cliente Keycloak e configurar Authorization Code + PKCE, login/logout e retorno à navegação; definir dependências antes de adicionar bibliotecas.                                     | Concluída                               |
 | FE-06 | Carrinho                   | Integrar APIs autenticadas, adição, alteração e remoção; tratar 401/404/409 e falhas de integração, com valores vindos do backend.                                                              | Concluída                               |
 | FE-07 | Validar integração real    | Iniciar serviços, verificar HTTP real, corrigir audiência e recolher confirmação manual de login/carrinho, documentando limites da automação.                                                   | Concluída com validação manual relatada |
+| FE-08 | Revisão visual e acessibilidade | Rever catálogo, detalhe e carrinho em desktop/telemóvel, teclado, foco, rótulos e mensagens de validação; corrigir os problemas encontrados. | Em curso — correções implementadas; revisão no navegador pendente |
 
 ## Limites desta fase
 
@@ -153,3 +154,26 @@ em navegador e a verificação manual em dispositivos permanecem pendentes.
   ponta a ponta, login real e revisão visual responsiva permanecem pendentes.
 - Checkout permanece desativado. Nenhuma alteração de backend, contratos, schema,
   Keycloak ou dependências; avisos de audit já registrados na FE-05 não foram tratados.
+
+## Validação de FE-08
+
+- Revisados os templates de catálogo, detalhe e carrinho e os estilos do cabeçalho.
+  Os botões Guardar do carrinho agora identificam o produto no nome acessível.
+- Erros de quantidade aparecem junto do item e são associados ao campo por
+  aria-describedby e aria-invalid. Editar o campo limpa o erro desse item;
+  quantidades inválidas não enviam PATCH. O formulário usa a validação da aplicação
+  para apresentar a mesma mensagem associada ao campo em todos os navegadores.
+- Botões de pesquisa/conta/carrinho têm área mínima de 44 × 44 px; o campo de
+  pesquisa tem altura mínima de 44 px e o formulário pode encolher no cabeçalho.
+- npm test -- --watch=false: 71 testes aprovados, incluindo cenário de dois produtos
+  com erro associado apenas ao campo afetado. npm run build: aprovado sem avisos.
+  git diff --check: aprovado.
+- A automação do navegador falhou ao iniciar com helper_unknown_error:
+  setup refresh had errors. Não foram obtidas capturas nem executada navegação
+  por teclado ou leitura assistiva real. Isto não constitui uma auditoria completa
+  de acessibilidade; a FE-08 permanece em curso.
+- Para concluir: conferir catálogo, detalhe e carrinho a 320/375/768/1280 px,
+  zoom de 200%/400%, textos longos, filtros móveis, ordem de Tab, foco visível,
+  salto para conteúdo e anúncio dos erros com leitor de ecrã. Confirmar ausência
+  de cortes e rolagem horizontal e corrigir eventuais problemas observados.
+- Nenhuma alteração de backend, contratos, autenticação ou dependências.
