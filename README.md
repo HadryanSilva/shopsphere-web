@@ -58,6 +58,25 @@ Configuração local consultada em 2026-10-27, sem alterações no Keycloak:
 - cliente público, Standard Flow ativo, Direct Access Grants inativo e PKCE S256;
 - Redirect URIs: `http://localhost:4200/*`; Web Origins: `http://localhost:4200`.
 
+Gateway e Cart validam `aud=shopsphere-api`. O cliente web precisa incluir essa
+audiência no access token; apenas conseguir iniciar sessão não garante acesso
+às APIs. Durante a FE-07, a avaliação do cliente emitia somente `aud=account`,
+provocando 401 nas operações de carrinho mesmo após repetir o login.
+
+A correção local adicionou ao cliente `shopsphere-web` o mapeador versionado em
+`keycloak/shopsphere-web-audience-mapper.json`. Para reproduzir na consola do
+Keycloak: no realm shopsphere, abrir Clients → shopsphere-web → Client scopes →
+scope dedicado → configurar mapper Audience; definir Included Custom Audience
+como shopsphere-api, Add to access token ativo e Add to ID token inativo.
+O JSON também pode ser enviado ao endpoint administrativo de protocol mappers
+do UUID desse cliente, por um operador autorizado. Não importar substituindo
+o cliente inteiro nem duplicar um mapper existente com o mesmo nome.
+
+Não foram alteradas roles ou validações JWT das APIs. Depois de configurar o
+mapper, sair e entrar novamente para emitir tokens novos. A avaliação local
+passou a apresentar shopsphere-api e account; o reteste autenticado no navegador
+continua necessário. Referência: [audiências no Keycloak](https://www.keycloak.org/docs/26.7.5/server_admin/index.html#_audience).
+
 O cliente precisa permitir os redirects da loja e de
 `http://localhost:4200/silent-check-sso.html`, além do retorno após logout.
 O ficheiro `public/silent-check-sso.html` participa apenas da verificação silenciosa.
