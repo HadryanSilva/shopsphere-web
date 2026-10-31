@@ -165,8 +165,8 @@ Executar uma microtarefa por vez, reconfirmando código e numeração ao começa
 As quatro entregas iniciais foram desdobradas em FE-10–21 antes de qualquer
 implementação. A numeração abaixo substitui a proposta anterior FE-10–13;
 nenhuma tarefa dessa proposta anterior chegou a ser executada. Todas as tarefas
-abaixo têm escopo aprovado. FE-10 e FE-11 foram concluídas conforme os registros
-de validação ao final; FE-12–21 permanecem planejadas.
+abaixo têm escopo aprovado. FE-10–12 foram concluídas conforme os registros
+de validação ao final; FE-13–21 permanecem planejadas.
 
 | ID | Microtarefa | Depende de | Escopo e critério de conclusão |
 | --- | --- | --- | --- |
@@ -191,9 +191,9 @@ etapas não adiam a validação unitária ou de componente das anteriores.
 
 Dependência identificada na FE-11: a página precisa distinguir contas pelo sub,
 inclusive quando possuem o mesmo nome. O accessor mínimo `AuthService.subject`
-e testes de isolamento foram antecipados da FE-12. A FE-12 deve partir dessa
-implementação, consolidar os cenários de ciclo de sessão e atualizar seu estado
-sem duplicar o accessor; nenhuma persistência de intenção foi antecipada.
+e testes de isolamento foram antecipados da FE-12. A FE-12 consolidou essa
+implementação e os cenários de ciclo de sessão, sem duplicar o accessor;
+nenhuma persistência de intenção foi antecipada.
 
 Cada entrega de código exige testes focados, suíte frontend sem watch, build,
 diff revisado e commit local. A FE-09 documental exige conferência das fontes,
@@ -212,7 +212,7 @@ links e diff; não altera execução e não requer repetir testes Angular.
    antes de validar/habilitar o checkout; não ativar backend nesta definição.
 
 O utilizador aprovou explicitamente o plano após a apresentação destas cinco
-decisões. A próxima microtarefa é FE-12 — Identidade estável no frontend. Este registro
+decisões. A próxima microtarefa é FE-13 — Persistência da intenção por conta. Este registro
 não executa a implementação nem altera configuração de serviços.
 
 Se for necessária recuperação entre abas,
@@ -273,3 +273,32 @@ Não houve integração com backend/Keycloak reais, inspeção visual em navegad
 teste manual de teclado ou leitor de ecrã nesta entrega; seguem nas FE-19–21.
 CSS prevê uma coluna abaixo de 850 px e quebra de textos longos, sem alegar
 validação visual real. Nenhuma alteração de backend, contrato, schema ou dependência.
+
+## Validação da FE-12 — Identidade estável no frontend
+
+Concluída em 2026-10-31. O accessor readonly `AuthService.subject` passa a usar
+um snapshot reativo próprio, sincronizado com os eventos do adaptador. Não lê
+diretamente o objeto mutável do Keycloak no computed. Sub ausente, vazio ou de
+tipo inválido não é substituído pelo nome; logout informado pelo adaptador e
+descarte limpam a identidade. Falha no logout preserva a sessão existente.
+
+`getAccessToken` verifica se o sub permaneceu igual durante a renovação antes
+de devolver um token. Falha de renovação iniciada sob uma conta anterior não
+limpa credenciais de outra conta que tenha entrado enquanto ela estava pendente.
+Callbacks e renovações de cliente descartado não restauram a identidade.
+
+Dois testes novos reproduziram falhas antes da correção: identidade em cache
+após descarte e devolução do token da nova conta para uma operação da antiga.
+A cobertura adicional verifica nome/token alterados na mesma conta, claims
+inválidos, expiração/reautenticação com retorno ao pedido, logout falho/sucesso,
+troca de conta, falha tardia de refresh e descarte com callbacks pendentes.
+
+- `npm test -- --watch=false --include=src/app/auth/auth.service.spec.ts --include=src/app/order/order-page.spec.ts`: 62 testes aprovados (25 de autenticação e 37 de pedido).
+- `npm test -- --watch=false`: 136 testes aprovados, oito arquivos, sem falhas.
+- `npm run build`: aprovado sem avisos.
+- `git diff --check`: aprovado.
+
+Adaptador e HTTP simulados; não houve login/refresh/logout reais no Keycloak
+nesta microtarefa. Navegação e PKCE existentes preservados na suíte. Tokens
+continuam privados e em memória, sem persistência de endereço ou intenção,
+alteração de backend, permissões, configuração do Keycloak ou dependências.

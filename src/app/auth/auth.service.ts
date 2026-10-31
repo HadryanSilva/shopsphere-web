@@ -22,16 +22,15 @@ export class AuthService {
   private readonly document = inject(DOCUMENT);
   private readonly factory = inject(KEYCLOAK_FACTORY);
   private readonly authState = signal<AuthState>({ status: 'initializing' });
+  private readonly authSubject = signal<string | undefined>(undefined);
   private readonly authError = signal('');
   private readonly pending = signal(false);
   private client?: Keycloak;
   private initialization?: Promise<void>;
   readonly state = this.authState.asReadonly();
-  readonly subject = computed(() => {
-    if (this.state().status !== 'authenticated') return undefined;
-    const sub = this.client?.tokenParsed?.sub;
-    return typeof sub === 'string' && sub.trim() ? sub : undefined;
-  });
+  readonly subject = computed(() =>
+    this.state().status === 'authenticated' ? this.authSubject() : undefined,
+  );
   readonly error = this.authError.asReadonly();
   readonly actionPending = this.pending.asReadonly();
 
@@ -81,7 +80,10 @@ export class AuthService {
       client.onAuthSuccess = () => this.synchronize(client);
       client.onAuthRefreshSuccess = () => this.synchronize(client);
       client.onAuthLogout = () => {
-        if (this.client === client) this.authState.set({ status: 'anonymous' });
+        if (this.client === client) {
+          this.authSubject.set(undefined);
+          this.authState.set({ status: 'anonymous' });
+        }
       };
       client.onTokenExpired = () => {
         void this.refreshSession(client);
@@ -138,8 +140,12 @@ export class AuthService {
   async getAccessToken(): Promise<string | undefined> {
     const client = this.client;
     if (!client || this.state().status !== 'authenticated') return undefined;
+    const subject = this.subject();
     await this.refreshSession(client);
-    return this.client === client && this.state().status === 'authenticated' && client.authenticated
+    return this.client === client &&
+      this.state().status === 'authenticated' &&
+      client.authenticated &&
+      this.subject() === subject
       ? client.token
       : undefined;
   }
@@ -161,11 +167,14 @@ export class AuthService {
   private synchronize(client: Keycloak): void {
     if (this.client !== client) return;
     if (!client.authenticated) {
+      this.authSubject.set(undefined);
       this.authState.set({ status: 'anonymous' });
       return;
     }
     const username: unknown =
       client.tokenParsed?.['preferred_username'] ?? client.tokenParsed?.['name'];
+    const sub = client.tokenParsed?.sub;
+    this.authSubject.set(typeof sub === 'string' && sub.trim() ? sub : undefined);
     this.authState.set({
       status: 'authenticated',
       username: typeof username === 'string' && username.trim() ? username : 'Minha conta',
@@ -174,11 +183,12 @@ export class AuthService {
 
   private async refreshSession(client: Keycloak): Promise<void> {
     if (this.client !== client || this.state().status !== 'authenticated') return;
+    const subject = this.subject();
     try {
       await client.updateToken(30);
       this.synchronize(client);
     } catch {
-      if (this.client !== client) return;
+      if (this.client !== client || this.subject() !== subject) return;
       await client.clearToken();
       this.authState.set({ status: 'anonymous' });
       this.authError.set('A sessão terminou. Entre novamente para continuar.');
@@ -203,6 +213,7 @@ export class AuthService {
   private async discardClient(): Promise<void> {
     const client = this.client;
     this.client = undefined;
+    this.authSubject.set(undefined);
     if (!client) return;
     client.onAuthSuccess =
       client.onAuthRefreshSuccess =

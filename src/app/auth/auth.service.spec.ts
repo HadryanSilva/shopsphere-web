@@ -165,6 +165,143 @@ describe('AuthService', () => {
     expect(target.searchParams.has('state')).toBe(false);
   });
 
+  it('keeps the subject stable when the display name and access token change', async () => {
+    client.authenticated = true;
+    client.tokenParsed = { sub: 'account-one', preferred_username: 'Nome inicial' };
+    await initialize();
+    client.updateToken.mockImplementation(async () => {
+      client.token = 'renewed-token';
+      client.tokenParsed = { sub: 'account-one', preferred_username: 'Nome atualizado' };
+      client.onAuthRefreshSuccess?.();
+      return true;
+    });
+    expect(await auth.getAccessToken()).toBe('renewed-token');
+    expect(auth.subject()).toBe('account-one');
+    expect(auth.state()).toEqual({ status: 'authenticated', username: 'Nome atualizado' });
+    expect(auth.state()).not.toHaveProperty('token');
+  });
+
+  it.each([undefined, '', '   ', 42])(
+    'does not substitute a username for an invalid subject %s',
+    async (sub) => {
+      client.authenticated = true;
+      client.tokenParsed = { preferred_username: 'Cliente', sub } as KeycloakTokenParsed;
+      await initialize();
+      expect(auth.subject()).toBeUndefined();
+      expect(auth.state()).toEqual({ status: 'authenticated', username: 'Cliente' });
+    },
+  );
+
+  it('restores the same account only after reauthentication completes and preserves its order URL', async () => {
+    document.defaultView!.history.replaceState(
+      null,
+      '',
+      '/orders/20000000-0000-0000-0000-000000000001?view=detail#conteudo',
+    );
+    client.authenticated = true;
+    client.tokenParsed = { sub: 'account-one', preferred_username: 'Cliente' };
+    await initialize();
+    client.updateToken.mockRejectedValueOnce(new Error('Expired'));
+    expect(await auth.getAccessToken()).toBeUndefined();
+    expect(auth.subject()).toBeUndefined();
+    await auth.login();
+    expect(auth.subject()).toBeUndefined();
+    expect(client.login).toHaveBeenCalledWith({ redirectUri: document.location.href });
+    client.authenticated = true;
+    client.tokenParsed = { sub: 'account-one', preferred_username: 'Outro nome' };
+    client.onAuthSuccess?.();
+    expect(auth.subject()).toBe('account-one');
+  });
+
+  it('keeps the current identity if logout fails and clears it when logout is reported', async () => {
+    client.authenticated = true;
+    client.tokenParsed = { sub: 'account-one' };
+    await initialize();
+    client.logout.mockRejectedValueOnce(new Error('Unavailable'));
+    await auth.logout();
+    expect(auth.subject()).toBe('account-one');
+    client.logout.mockImplementation(async () => {
+      await client.clearToken();
+    });
+    await auth.logout();
+    expect(auth.subject()).toBeUndefined();
+    expect(auth.state().status).toBe('anonymous');
+  });
+
+  it('does not return another account token when the subject changes during refresh', async () => {
+    client.authenticated = true;
+    client.token = 'account-one-token';
+    client.tokenParsed = { sub: 'account-one' };
+    await initialize();
+    let finish!: (value: boolean) => void;
+    client.updateToken.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    const token = auth.getAccessToken();
+    client.token = 'account-two-token';
+    client.tokenParsed = { sub: 'account-two' };
+    client.onAuthSuccess?.();
+    finish(true);
+    expect(await token).toBeUndefined();
+    expect(auth.subject()).toBe('account-two');
+  });
+
+  it('clears the exposed identity synchronously on disposal and ignores late callbacks and refresh', async () => {
+    client.authenticated = true;
+    client.token = 'test-token';
+    client.tokenParsed = { sub: 'account-one' };
+    await initialize();
+    expect(auth.subject()).toBe('account-one');
+    const success = client.onAuthSuccess!;
+    const refreshed = client.onAuthRefreshSuccess!;
+    const loggedOut = client.onAuthLogout!;
+    const expired = client.onTokenExpired!;
+    let finish!: (value: boolean) => void;
+    client.updateToken.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    const token = auth.getAccessToken();
+    TestBed.resetTestingModule();
+    expect(auth.subject()).toBeUndefined();
+    client.authenticated = true;
+    client.token = 'late-token';
+    client.tokenParsed = { sub: 'late-account' };
+    success();
+    refreshed();
+    loggedOut();
+    expired();
+    finish(true);
+    expect(await token).toBeUndefined();
+    expect(auth.subject()).toBeUndefined();
+    expect(client.updateToken).toHaveBeenCalledOnce();
+  });
+
+  it('does not clear a new account when an older account refresh fails', async () => {
+    client.authenticated = true;
+    client.token = 'account-one-token';
+    client.tokenParsed = { sub: 'account-one' };
+    await initialize();
+    let reject!: (error: Error) => void;
+    client.updateToken.mockReturnValueOnce(
+      new Promise((_resolve, fail) => {
+        reject = fail;
+      }),
+    );
+    const token = auth.getAccessToken();
+    client.token = 'account-two-token';
+    client.tokenParsed = { sub: 'account-two' };
+    client.onAuthSuccess?.();
+    reject(new Error('Old refresh expired'));
+    expect(await token).toBeUndefined();
+    expect(auth.subject()).toBe('account-two');
+    expect(client.clearToken).not.toHaveBeenCalled();
+    expect(auth.error()).toBe('');
+  });
+
   it('keeps the public application available and allows recovery after config failure', async () => {
     const pending = auth.initialize();
     http.expectOne('/auth-config.json').flush({}, { status: 503, statusText: 'Unavailable' });
