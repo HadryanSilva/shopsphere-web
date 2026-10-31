@@ -20,8 +20,14 @@ Cada microtarefa termina com revisão do diff, validação pertinente e commit l
 
 A próxima fase foi definida documentalmente na **FE-09 — Checkout e pedido**,
 em [CHECKOUT_FE09.md](CHECKOUT_FE09.md). O levantamento de contratos e a proposta
-FE-10–13 estão concluídos; as cinco decisões do documento aguardam aprovação
+FE-10–21 estão concluídos; as cinco decisões do documento aguardam aprovação
 antes da implementação. Não há checkout habilitado nem alteração de backend.
+
+A sequência detalhada em CHECKOUT_FE09.md divide cliente HTTP, consulta do pedido,
+identidade, armazenamento da intenção, envio/recuperação, formulário, prévia,
+ambiente local, conexão da tela, integração nominal, recuperação real e revisão
+de acessibilidade em doze microtarefas. Cada uma tem dependências e critérios
+próprios; executar somente uma por vez.
 
 A FE-07 — validar integração real — foi concluída com confirmação manual do utilizador. Evidência de arranque,
 HTTP, correção de audiência e limitações da validação em [INTEGRATION_FE07.md](INTEGRATION_FE07.md).

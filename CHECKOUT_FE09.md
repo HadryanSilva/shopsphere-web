@@ -161,12 +161,31 @@ ou consulta de reserva interna pelo navegador.
 
 Executar uma microtarefa por vez, reconfirmando código e numeração ao começar.
 
-| ID | Entrega | Critério de conclusão |
-| --- | --- | --- |
-| FE-10 | Cliente Order e consulta do pedido | DTOs reais, token escopado, GET e rota `/orders/:id`; estados/valores, acesso direto, 401/403/404/retry e isolamento entre sessões testados. Sem criar pedido. |
-| FE-11 | Intenção recuperável de checkout | Identidade estável no AuthService, storage por conta, UUID/corpo imutáveis e POST autenticado; testes de recarga, troca de conta, storage indisponível, resposta perdida, replay e ausência de envio automático. Sem ativar botão do carrinho. |
-| FE-12 | Tela de checkout | `/checkout`, leitura do carrinho, endereço, validação, confirmação explícita, integração da intenção e navegação ao pedido; habilitar entrada pelo carrinho após validar o pré-requisito operacional. |
-| FE-13 | Integração real e revisão de experiência | Preparar ambiente local snapshot e credencial de serviço fora do frontend; testar login, criação, replay após perda de resposta, consulta por proprietário, progressão de estoque e expiração/cancelamento; desktop/telemóvel, teclado/foco e mensagens. Documentar limitações reais. |
+As quatro entregas iniciais foram desdobradas em FE-10–21 antes de qualquer
+implementação. A numeração abaixo substitui a proposta anterior FE-10–13;
+nenhuma tarefa dessa proposta anterior chegou a ser executada. Todas as tarefas
+abaixo estão planejadas e aguardam aprovação das decisões desta definição.
+
+| ID | Microtarefa | Depende de | Escopo e critério de conclusão |
+| --- | --- | --- | --- |
+| FE-10 | Cliente HTTP de pedidos | Aprovação da definição | Criar DTOs e OrderApi com GET por ID e POST com endereço/chave, token renovado somente nessas chamadas e timeout. Testar URL, headers, corpo sem itens/preços/identidade, ausência de envio sem token e ausência de retry automático. Sem rota ou submissão pela UI. |
+| FE-11 | Página de consulta do pedido | FE-10 | Criar `/orders/:id` com acesso direto, snapshots, totais, estados e atualização manual. Cobrir UUID inválido, carregamento, 401/403/404, falha/retry e limpeza dos dados ao sair ou mudar sessão; requisições antigas não atualizam a página. Sem criação de pedido. |
+| FE-12 | Identidade estável no frontend | Aprovação da definição | Expor o sub autenticado no AuthService, sem expor token em estado público/storage. Testar renovação da mesma conta, expiração, reautenticação, logout e troca de conta; preservar login/logout e navegação existentes. Sem persistir endereço. |
+| FE-13 | Persistência da intenção por conta | FE-12 | Criar armazenamento versionado em sessionStorage para chave/corpo congelados e orderId, com normalização única. Testar recarga, registro inválido, falha de leitura/escrita, isolamento por sub, logout/troca de conta e preservação durante expiração técnica. Nenhum POST nesta tarefa. |
+| FE-14 | Envio e recuperação da intenção | FE-10, FE-13 | Coordenar gravação antes do POST, bloqueio de duplicação, resultado incerto, replay explícito com chave/corpo originais e resolução por GET quando há ID. Testar timeout, resposta inválida, 400/401/403/404/409/5xx, falha ao guardar resultado e ausência de replay ao iniciar/login/recarregar. Sem ativar checkout no carrinho. |
+| FE-15 | Formulário de endereço | Aprovação da definição | Criar formulário com campos/limites reais, labels, autocomplete, normalização e erros associados; focar resumo de erros na confirmação inválida. Testar campos obrigatórios, limites, país e linha opcional. Sem envio de pedido ou dependência nova. |
+| FE-16 | Prévia do checkout | FE-15 | Criar `/checkout` com convite para login, leitura do carrinho, resumo estimado e formulário. Cobrir vazio/inativo, mais de 100 produtos, erros/retry, sessão e cancelamento de leituras. Ação final permanece indisponível e abrir/login nunca envia POST. |
+| FE-17 | Verificar ambiente local de checkout | Aprovação da definição | Conferir arranque snapshot, token de serviço e workers Order/Inventory segundo a operação existente; documentar configuração e evidência HTTP segura. Configuração somente local, sem secrets no repo ou alteração dos defaults do backend. Indisponibilidade deve ser registrada como pendência, sem declarar integração validada. |
+| FE-18 | Conectar confirmação e recuperação à tela | FE-11, FE-14, FE-16, FE-17 validada | Ligar “Criar pedido” à confirmação explícita e navegar ao pedido em 201 válido. Integrar retomada após recarga antes de exigir Cart ativo, mensagens de resultado incerto e bloqueio de endereço/chave após envio. Habilitar entrada pelo carrinho e testar duplo clique, login sem envio, replay, retorno e atualização posterior do Cart. |
+| FE-19 | Validar criação e consulta reais | FE-18 | Com serviços e Keycloak reais, validar login, criação, acesso direto, replay conhecido, consulta por proprietário e progressão PENDING_STOCK/PENDING_PAYMENT. Registrar resultados e limites, sem simulação apresentada como evidência real. |
+| FE-20 | Validar recuperação e cancelamento reais | FE-19 | Validar resposta perdida, recarga e retomada com a mesma chave, indisponibilidade/restauração e expiração/cancelamento por estoque. Confirmar ausência de novo pedido/débito duplicado e que a UI não promete reabertura do Cart. Injeções de falha somente em ambiente local isolado, sem mudar dados compartilhados. |
+| FE-21 | Revisar experiência e acessibilidade | FE-18; FE-19/20 para encerrar a fase | Rever checkout e pedido em desktop/telemóvel, teclado, foco, zoom, nomes acessíveis e anúncios de erro/estado. Corrigir problemas observados, executar regressão de catálogo/detalhe/carrinho e registrar cobertura manual/automatizada e pendências. |
+
+As tarefas intermediárias podem entregar componentes/serviços testáveis sem
+habilitar uma compra incompleta. FE-18 é o ponto de habilitação da UI; FE-19–21
+encerram a validação da fase. Concluir código não substitui a evidência de
+integração real. Os testes de cada tarefa acompanham a implementação; as últimas
+etapas não adiam a validação unitária ou de componente das anteriores.
 
 Cada entrega de código exige testes focados, suíte frontend sem watch, build,
 diff revisado e commit local. A FE-09 documental exige conferência das fontes,
@@ -174,7 +193,7 @@ links e diff; não altera execução e não requer repetir testes Angular.
 
 ## Decisões para aprovação
 
-1. Implementar somente criação de pedido e consulta individual, na sequência FE-10–13.
+1. Implementar somente criação de pedido e consulta individual, na sequência FE-10–21.
 2. Usar a criação com revalidação de preços sem uma segunda confirmação vinculante,
    explicitando que o resumo do Cart é estimado; pagamento permanece indisponível.
 3. Aprovar sessionStorage com endereço/chave por conta na mesma aba e a exposição
