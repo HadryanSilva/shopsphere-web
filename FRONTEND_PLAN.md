@@ -15,20 +15,25 @@ Cada microtarefa termina com revisão do diff, validação pertinente e commit l
 | FE-07 | Validar integração real    | Iniciar serviços, verificar HTTP real, corrigir audiência e recolher confirmação manual de login/carrinho, documentando limites da automação.                                                   | Concluída com validação manual relatada |
 | FE-08 | Revisão visual e acessibilidade | Rever catálogo, detalhe e carrinho em desktop/telemóvel, teclado, foco, rótulos e mensagens de validação; corrigir os problemas encontrados. | Concluída com validação manual relatada |
 | FE-09 | Definir checkout e pedido | Conferir contratos existentes, propor experiência, recuperação de intenção e microtarefas de implementação, com decisões explícitas para aprovação. | Concluída e aprovada em 2026-10-31 |
+| FE-10 | Cliente HTTP de pedidos | DTOs reais, GET/POST autenticados com timeout, payload restrito ao endereço, chave fornecida pelo chamador e ausência de retry automático; testes de contrato. | Concluída |
 
 ## Limites desta fase
 
 A próxima fase foi definida documentalmente na **FE-09 — Checkout e pedido**,
 em [CHECKOUT_FE09.md](CHECKOUT_FE09.md). As cinco decisões e a sequência FE-10–21
 foram aprovadas explicitamente pelo utilizador em 2026-10-31. A implementação
-permanece planejada; a próxima microtarefa é FE-10 — Cliente HTTP de pedidos.
-Não há checkout habilitado nem alteração de backend neste registro de aprovação.
+começou pela FE-10, concluída; a próxima microtarefa é FE-11 — Página de consulta
+do pedido. Não há checkout habilitado nem alteração de backend nesta fase.
 
 A sequência detalhada em CHECKOUT_FE09.md divide cliente HTTP, consulta do pedido,
 identidade, armazenamento da intenção, envio/recuperação, formulário, prévia,
 ambiente local, conexão da tela, integração nominal, recuperação real e revisão
 de acessibilidade em doze microtarefas. Cada uma tem dependências e critérios
 próprios; executar somente uma por vez.
+
+FE-10: 16 testes focados e 87 na suíte completa aprovados; build de produção e
+diff validados. Cliente ainda sem chamadas pela UI; integração real permanece
+para as etapas próprias. Detalhes em [CHECKOUT_FE09.md](CHECKOUT_FE09.md).
 
 A FE-07 — validar integração real — foi concluída com confirmação manual do utilizador. Evidência de arranque,
 HTTP, correção de audiência e limitações da validação em [INTEGRATION_FE07.md](INTEGRATION_FE07.md).

@@ -165,7 +165,8 @@ Executar uma microtarefa por vez, reconfirmando código e numeração ao começa
 As quatro entregas iniciais foram desdobradas em FE-10–21 antes de qualquer
 implementação. A numeração abaixo substitui a proposta anterior FE-10–13;
 nenhuma tarefa dessa proposta anterior chegou a ser executada. Todas as tarefas
-abaixo estão planejadas, com escopo aprovado; nenhuma está implementada por este registro.
+abaixo têm escopo aprovado. FE-10 foi concluída conforme o registro de validação
+ao final; FE-11–21 permanecem planejadas.
 
 | ID | Microtarefa | Depende de | Escopo e critério de conclusão |
 | --- | --- | --- | --- |
@@ -205,9 +206,31 @@ links e diff; não altera execução e não requer repetir testes Angular.
    antes de validar/habilitar o checkout; não ativar backend nesta definição.
 
 O utilizador aprovou explicitamente o plano após a apresentação destas cinco
-decisões. A próxima microtarefa é FE-10 — Cliente HTTP de pedidos. Este registro
+decisões. A próxima microtarefa é FE-11 — Página de consulta do pedido. Este registro
 não executa a implementação nem altera configuração de serviços.
 
 Se for necessária recuperação entre abas,
 logout ou dispositivos, ou resolução autônoma de intenções com 409 sem ID,
 definir um contrato adicional antes de prometer essa capacidade no frontend.
+
+## Validação da FE-10 — Cliente HTTP de pedidos
+
+Concluída em 2026-10-31. OrderApi e DTOs conferidos com controller, records e
+enum atuais do Order. GET por ID usa segmento codificado; POST envia somente
+os seis campos de endereço e a chave recebida do chamador, sem normalização,
+geração de chave, itens, preços, totais ou identidade fornecida pelo cliente.
+
+Token obtido pelo AuthService a cada subscrição, restrito às chamadas Order,
+com timeout HTTP de 10 segundos e erro local 401 sem token. Sem retry automático;
+erros HTTP/rede são propagados para o futuro coordenador. Sem interceptor,
+storage, rota, tela ou habilitação de checkout nesta microtarefa.
+
+- `npm test -- --watch=false --include=src/app/order/order-api.spec.ts`: 16 testes aprovados.
+- `npm test -- --watch=false`: 87 testes aprovados, sete arquivos, sem falhas.
+- `npm run build`: aprovado sem avisos.
+- `git diff --check`: aprovado.
+
+Testes HTTP usam HttpTestingController e autenticação simulada; não houve POST
+real, login real ou validação ponta a ponta. Validação de conteúdo recebido e
+estados da tela pertencem às próximas microtarefas; os tipos TypeScript não
+validam JSON em execução. Nenhuma mudança de backend, contrato ou dependência.
