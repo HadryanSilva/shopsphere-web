@@ -165,8 +165,8 @@ Executar uma microtarefa por vez, reconfirmando código e numeração ao começa
 As quatro entregas iniciais foram desdobradas em FE-10–21 antes de qualquer
 implementação. A numeração abaixo substitui a proposta anterior FE-10–13;
 nenhuma tarefa dessa proposta anterior chegou a ser executada. Todas as tarefas
-abaixo têm escopo aprovado. FE-10 foi concluída conforme o registro de validação
-ao final; FE-11–21 permanecem planejadas.
+abaixo têm escopo aprovado. FE-10 e FE-11 foram concluídas conforme os registros
+de validação ao final; FE-12–21 permanecem planejadas.
 
 | ID | Microtarefa | Depende de | Escopo e critério de conclusão |
 | --- | --- | --- | --- |
@@ -189,6 +189,12 @@ encerram a validação da fase. Concluir código não substitui a evidência de
 integração real. Os testes de cada tarefa acompanham a implementação; as últimas
 etapas não adiam a validação unitária ou de componente das anteriores.
 
+Dependência identificada na FE-11: a página precisa distinguir contas pelo sub,
+inclusive quando possuem o mesmo nome. O accessor mínimo `AuthService.subject`
+e testes de isolamento foram antecipados da FE-12. A FE-12 deve partir dessa
+implementação, consolidar os cenários de ciclo de sessão e atualizar seu estado
+sem duplicar o accessor; nenhuma persistência de intenção foi antecipada.
+
 Cada entrega de código exige testes focados, suíte frontend sem watch, build,
 diff revisado e commit local. A FE-09 documental exige conferência das fontes,
 links e diff; não altera execução e não requer repetir testes Angular.
@@ -206,7 +212,7 @@ links e diff; não altera execução e não requer repetir testes Angular.
    antes de validar/habilitar o checkout; não ativar backend nesta definição.
 
 O utilizador aprovou explicitamente o plano após a apresentação destas cinco
-decisões. A próxima microtarefa é FE-11 — Página de consulta do pedido. Este registro
+decisões. A próxima microtarefa é FE-12 — Identidade estável no frontend. Este registro
 não executa a implementação nem altera configuração de serviços.
 
 Se for necessária recuperação entre abas,
@@ -234,3 +240,36 @@ Testes HTTP usam HttpTestingController e autenticação simulada; não houve POS
 real, login real ou validação ponta a ponta. Validação de conteúdo recebido e
 estados da tela pertencem às próximas microtarefas; os tipos TypeScript não
 validam JSON em execução. Nenhuma mudança de backend, contrato ou dependência.
+
+## Validação da FE-11 — Página de consulta do pedido
+
+Concluída em 2026-10-31. Rota lazy `/orders/:id` com título próprio, foco no h1,
+autenticação explícita e leitura por OrderApi. Exibe referência, nomes/quantidades
+do snapshot, preços, subtotal, desconto, envio, total, moeda e updatedAt recebidos.
+Traduções dos estados conhecidos, fallback para desconhecido e aviso de pagamento
+indisponível; não infere causa de cancelamento nem pagamento a partir de estado.
+
+Atualização somente manual, com bloqueio de cliques durante a leitura. UUID
+inválido não chama Order; 404 é genérico para inexistente/outra conta; 401 oferece
+reautenticação, 403 informa restrição e erros temporários oferecem nova tentativa.
+JSON incompatível gera erro recuperável, sem renderizar totais inválidos. Conteúdo
+textual é interpolado com escape; não há POST ou operação de pagamento/cancelamento.
+
+O contexto usa ID da rota, estado da sessão e sub. O accessor readonly de sub foi
+antecipado da FE-12 por necessidade de isolamento; não altera JWT, login, permissões
+ou storage. Dados do contexto anterior são ocultados sincronamente na renderização,
+e a troca de contexto/saída cancela a subscrição anterior. Renovação do token e
+mudança do nome na mesma conta não provocam ciclos de consulta.
+
+- `npm test -- --watch=false --include=src/app/order/order-page.spec.ts --include=src/app/auth/auth.service.spec.ts`: 52 testes aprovados, após correção de tipagem apontada na primeira compilação.
+- `npm test -- --watch=false`: 126 testes aprovados, oito arquivos, sem falhas.
+- `npm run build`: aprovado sem avisos.
+- `git diff --check`: aprovado.
+
+Os testes usam RouterTestingHarness, DOM de teste e HTTP/autenticação simulados;
+cobrem acesso direto, moeda/totais, estados, foco programático, 401/403/404/rede,
+retry manual, sessão, contas com mesmo nome, requisições obsoletas e JSON inválido.
+Não houve integração com backend/Keycloak reais, inspeção visual em navegador,
+teste manual de teclado ou leitor de ecrã nesta entrega; seguem nas FE-19–21.
+CSS prevê uma coluna abaixo de 850 px e quebra de textos longos, sem alegar
+validação visual real. Nenhuma alteração de backend, contrato, schema ou dependência.

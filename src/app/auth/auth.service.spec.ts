@@ -117,6 +117,39 @@ describe('AuthService', () => {
     expect(client.logout).toHaveBeenCalledWith({ redirectUri: document.location.href });
   });
 
+  it('exposes a stable subject across refresh and distinguishes accounts with the same name', async () => {
+    const storageWrite = vi.spyOn(Storage.prototype, 'setItem');
+    client.authenticated = true;
+    client.token = 'test-token';
+    client.tokenParsed = { sub: 'account-one', preferred_username: 'Cliente' };
+    await initialize();
+    expect(auth.subject()).toBe('account-one');
+    client.token = 'refreshed-token';
+    client.onAuthRefreshSuccess?.();
+    expect(auth.subject()).toBe('account-one');
+    client.tokenParsed = { sub: 'account-two', preferred_username: 'Cliente' };
+    client.onAuthSuccess?.();
+    expect(auth.subject()).toBe('account-two');
+    client.onAuthLogout?.();
+    expect(auth.subject()).toBeUndefined();
+    expect(storageWrite).not.toHaveBeenCalled();
+  });
+
+  it('does not expose a subject for an anonymous session, missing claim or refresh failure', async () => {
+    expect(auth.subject()).toBeUndefined();
+    await initialize();
+    expect(auth.subject()).toBeUndefined();
+    client.authenticated = true;
+    client.onAuthSuccess?.();
+    expect(auth.subject()).toBeUndefined();
+    client.tokenParsed = { sub: 'account-one' };
+    client.onAuthSuccess?.();
+    expect(auth.subject()).toBe('account-one');
+    client.updateToken.mockRejectedValue(new Error('Expired'));
+    await auth.getAccessToken();
+    expect(auth.subject()).toBeUndefined();
+  });
+
   it('never accepts a return URL from query parameters', async () => {
     document.defaultView!.history.replaceState(
       null,

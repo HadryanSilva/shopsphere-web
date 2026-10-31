@@ -1,6 +1,6 @@
 import { DOCUMENT } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { DestroyRef, inject, Injectable, InjectionToken, signal } from '@angular/core';
+import { computed, DestroyRef, inject, Injectable, InjectionToken, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import Keycloak, { KeycloakConfig } from 'keycloak-js';
 
@@ -27,6 +27,11 @@ export class AuthService {
   private client?: Keycloak;
   private initialization?: Promise<void>;
   readonly state = this.authState.asReadonly();
+  readonly subject = computed(() => {
+    if (this.state().status !== 'authenticated') return undefined;
+    const sub = this.client?.tokenParsed?.sub;
+    return typeof sub === 'string' && sub.trim() ? sub : undefined;
+  });
   readonly error = this.authError.asReadonly();
   readonly actionPending = this.pending.asReadonly();
 

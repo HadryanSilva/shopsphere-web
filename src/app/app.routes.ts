@@ -3,6 +3,11 @@ import { CatalogPage } from './catalog/catalog-page';
 
 export const routes: Routes = [
   {
+    path: 'orders/:id',
+    loadComponent: () => import('./order/order-page').then((module) => module.OrderPage),
+    title: 'Pedido | ShopSphere',
+  },
+  {
     path: 'cart',
     loadComponent: () => import('./cart/cart-page').then((module) => module.CartPage),
     title: 'Carrinho | ShopSphere',

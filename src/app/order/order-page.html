@@ -1,0 +1,122 @@
+<a class="back-link" routerLink="/" fragment="catalogo">← Continuar a explorar</a>
+<div class="page-heading">
+  <h1 #heading tabindex="-1">O seu pedido</h1>
+  @if (auth.state().status === 'authenticated' && state().status !== 'not-found') {
+    <button
+      class="refresh"
+      type="button"
+      [disabled]="state().status === 'loading'"
+      (click)="load()"
+    >
+      Atualizar pedido
+    </button>
+  }
+</div>
+@let current = state();
+<div [attr.aria-busy]="current.status === 'loading'">
+  @switch (current.status) {
+    @case ('sign-in') {
+      <section class="state-message">
+        <h2>Entre para consultar o seu pedido</h2>
+        <button
+          type="button"
+          [disabled]="auth.state().status !== 'anonymous' || auth.actionPending()"
+          (click)="auth.login()"
+        >
+          Entrar
+        </button>
+      </section>
+    }
+    @case ('loading') {
+      <p class="state-message" role="status">A carregar pedido…</p>
+    }
+    @case ('not-found') {
+      <section class="state-message">
+        <h2 role="status">Pedido não encontrado</h2>
+        <p>Verifique a ligação e a conta com que entrou.</p>
+      </section>
+    }
+    @case ('error') {
+      <section class="state-message">
+        <p role="alert">{{ current.message }}</p>
+        @if (current.unauthorized) {
+          <button type="button" [disabled]="auth.actionPending()" (click)="auth.login(true)">
+            Entrar novamente
+          </button>
+        } @else {
+          <button type="button" (click)="load()">Tentar novamente</button>
+        }
+      </section>
+    }
+    @case ('loaded') {
+      <p class="order-id">Referência: {{ current.order.id }}</p>
+      <p class="order-status" role="status">{{ statusLabel(current.order.status) }}</p>
+      <p class="updated-at">
+        Última atualização:
+        <time [attr.datetime]="current.order.updatedAt">{{
+          current.order.updatedAt | date: 'dd/MM/yyyy HH:mm'
+        }}</time>
+      </p>
+      <div class="order-layout">
+        <section aria-labelledby="order-items-heading">
+          <h2 id="order-items-heading">Produtos do pedido</h2>
+          <ul class="order-items">
+            @for (item of current.order.items; track $index) {
+              <li class="order-item">
+                <h3>{{ item.productName }}</h3>
+                <p>Quantidade: {{ item.quantity }}</p>
+                <p>
+                  Preço por unidade:
+                  {{ item.unitPrice | currency: current.order.currency : 'symbol' : '1.2-2' }}
+                </p>
+                <p class="line-total">
+                  Subtotal:
+                  {{ item.lineTotal | currency: current.order.currency : 'symbol' : '1.2-2' }}
+                </p>
+              </li>
+            }
+          </ul>
+        </section>
+        <aside class="summary" aria-label="Resumo do pedido">
+          <h2>Resumo</h2>
+          <dl>
+            <div>
+              <dt>Subtotal</dt>
+              <dd>
+                {{ current.order.subtotal | currency: current.order.currency : 'symbol' : '1.2-2' }}
+              </dd>
+            </div>
+            <div>
+              <dt>Desconto</dt>
+              <dd>
+                {{
+                  current.order.discountAmount
+                    | currency: current.order.currency : 'symbol' : '1.2-2'
+                }}
+              </dd>
+            </div>
+            <div>
+              <dt>Envio</dt>
+              <dd>
+                {{
+                  current.order.shippingAmount
+                    | currency: current.order.currency : 'symbol' : '1.2-2'
+                }}
+              </dd>
+            </div>
+            <div class="total">
+              <dt>Total</dt>
+              <dd>
+                {{
+                  current.order.totalAmount | currency: current.order.currency : 'symbol' : '1.2-2'
+                }}
+              </dd>
+            </div>
+          </dl>
+          <p>Os valores correspondem ao pedido registrado.</p>
+          <p>O pagamento não está disponível nesta fase.</p>
+        </aside>
+      </div>
+    }
+  }
+</div>
