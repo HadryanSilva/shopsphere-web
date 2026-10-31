@@ -1,7 +1,8 @@
 # Checkout e pedido no frontend — FE-09
 
-Definição documental preparada em 2026-10-31. A FE-09 conclui o levantamento e
-a proposta incremental; as decisões abaixo aguardam aprovação antes de implementar.
+Definição documental preparada em 2026-10-31 e aprovada explicitamente pelo
+utilizador nesta data, incluindo as cinco decisões e a sequência FE-10–21.
+A FE-09 está concluída e aprovada; executar uma microtarefa de implementação por vez.
 Não há nova tela, chamada HTTP, alteração de backend ou ativação de serviços nesta entrega.
 
 ## Base verificada
@@ -107,7 +108,7 @@ corpo congelado; nunca normalizar novamente a partir de campos editados.
 
 Persistir antes do POST, em sessionStorage por utilizador autenticado, uma única
 intenção com versão de formato, chave, corpo exato e orderId quando conhecido.
-Isso inclui endereço pessoal: esta escolha exige aprovação explícita na definição.
+Isso inclui endereço pessoal: esta escolha foi aprovada explicitamente pelo utilizador.
 Não guardar token, endereço ou chave na URL, logs ou localStorage. Indisponibilidade
 de storage impede iniciar o POST, com mensagem recuperável; não enviar primeiro
 e descobrir depois que a intenção não foi guardada.
@@ -164,7 +165,7 @@ Executar uma microtarefa por vez, reconfirmando código e numeração ao começa
 As quatro entregas iniciais foram desdobradas em FE-10–21 antes de qualquer
 implementação. A numeração abaixo substitui a proposta anterior FE-10–13;
 nenhuma tarefa dessa proposta anterior chegou a ser executada. Todas as tarefas
-abaixo estão planejadas e aguardam aprovação das decisões desta definição.
+abaixo estão planejadas, com escopo aprovado; nenhuma está implementada por este registro.
 
 | ID | Microtarefa | Depende de | Escopo e critério de conclusão |
 | --- | --- | --- | --- |
@@ -191,7 +192,7 @@ Cada entrega de código exige testes focados, suíte frontend sem watch, build,
 diff revisado e commit local. A FE-09 documental exige conferência das fontes,
 links e diff; não altera execução e não requer repetir testes Angular.
 
-## Decisões para aprovação
+## Decisões aprovadas em 2026-10-31
 
 1. Implementar somente criação de pedido e consulta individual, na sequência FE-10–21.
 2. Usar a criação com revalidação de preços sem uma segunda confirmação vinculante,
@@ -203,6 +204,10 @@ links e diff; não altera execução e não requer repetir testes Angular.
 5. Exigir ambiente local com snapshot, identidade de serviço e workers configurados
    antes de validar/habilitar o checkout; não ativar backend nesta definição.
 
-Nenhuma aprovação foi presumida. Se for necessária recuperação entre abas,
+O utilizador aprovou explicitamente o plano após a apresentação destas cinco
+decisões. A próxima microtarefa é FE-10 — Cliente HTTP de pedidos. Este registro
+não executa a implementação nem altera configuração de serviços.
+
+Se for necessária recuperação entre abas,
 logout ou dispositivos, ou resolução autônoma de intenções com 409 sem ID,
 definir um contrato adicional antes de prometer essa capacidade no frontend.

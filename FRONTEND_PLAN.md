@@ -14,14 +14,15 @@ Cada microtarefa termina com revisão do diff, validação pertinente e commit l
 | FE-06 | Carrinho                   | Integrar APIs autenticadas, adição, alteração e remoção; tratar 401/404/409 e falhas de integração, com valores vindos do backend.                                                              | Concluída                               |
 | FE-07 | Validar integração real    | Iniciar serviços, verificar HTTP real, corrigir audiência e recolher confirmação manual de login/carrinho, documentando limites da automação.                                                   | Concluída com validação manual relatada |
 | FE-08 | Revisão visual e acessibilidade | Rever catálogo, detalhe e carrinho em desktop/telemóvel, teclado, foco, rótulos e mensagens de validação; corrigir os problemas encontrados. | Concluída com validação manual relatada |
-| FE-09 | Definir checkout e pedido | Conferir contratos existentes, propor experiência, recuperação de intenção e microtarefas de implementação, com decisões explícitas para aprovação. | Definição concluída; decisões aguardam aprovação |
+| FE-09 | Definir checkout e pedido | Conferir contratos existentes, propor experiência, recuperação de intenção e microtarefas de implementação, com decisões explícitas para aprovação. | Concluída e aprovada em 2026-10-31 |
 
 ## Limites desta fase
 
 A próxima fase foi definida documentalmente na **FE-09 — Checkout e pedido**,
-em [CHECKOUT_FE09.md](CHECKOUT_FE09.md). O levantamento de contratos e a proposta
-FE-10–21 estão concluídos; as cinco decisões do documento aguardam aprovação
-antes da implementação. Não há checkout habilitado nem alteração de backend.
+em [CHECKOUT_FE09.md](CHECKOUT_FE09.md). As cinco decisões e a sequência FE-10–21
+foram aprovadas explicitamente pelo utilizador em 2026-10-31. A implementação
+permanece planejada; a próxima microtarefa é FE-10 — Cliente HTTP de pedidos.
+Não há checkout habilitado nem alteração de backend neste registro de aprovação.
 
 A sequência detalhada em CHECKOUT_FE09.md divide cliente HTTP, consulta do pedido,
 identidade, armazenamento da intenção, envio/recuperação, formulário, prévia,
