@@ -20,13 +20,14 @@ Cada microtarefa termina com revisão do diff, validação pertinente e commit l
 | FE-12 | Identidade estável no frontend | Sub reativo por conta, limpeza no logout/descarte e proteção de renovação durante troca de conta; testes do ciclo de sessão e navegação. | Concluída |
 | FE-13 | Persistência da intenção por conta | Registro versionado em sessionStorage, endereço/chave congelados, referência de pedido, isolamento por sub, limpeza no logout/troca de conta e recuperação após expiração; falhas de storage testadas. | Concluída |
 | FE-14 | Envio e recuperação da intenção | Coordenador salva antes do POST, bloqueia duplicação, valida 201/pedido, preserva chave/corpo em falhas e recupera explicitamente por POST ou GET quando há ID. Sem ativar UI. | Concluída |
+| FE-15 | Formulário de endereço | Seis campos do contrato, limites, normalização, labels/autocomplete, erros associados e foco no resumo; componente sem envio ou persistência. | Concluída |
 
 ## Limites desta fase
 
 A próxima fase foi definida documentalmente na **FE-09 — Checkout e pedido**,
 em [CHECKOUT_FE09.md](CHECKOUT_FE09.md). As cinco decisões e a sequência FE-10–21
 foram aprovadas explicitamente pelo utilizador em 2026-10-31. A implementação
-tem FE-10–14 concluídas; a próxima microtarefa é FE-15 — Formulário de endereço.
+tem FE-10–15 concluídas; a próxima microtarefa é FE-16 — Prévia do checkout.
 Não há checkout habilitado nem alteração de backend nesta fase.
 
 A sequência detalhada em CHECKOUT_FE09.md divide cliente HTTP, consulta do pedido,
@@ -62,6 +63,12 @@ com deadline, cancelamento e isolamento entre sessões. Resultado conhecido
 continua recuperável por GET se a gravação local falhar. 95 testes focados e
 219 na suíte completa aprovados; build sem avisos e diff validado. Sem chamada
 pela UI ou integração real nesta microtarefa. Detalhes em CHECKOUT_FE09.md.
+
+FE-15: formulário reutilizável de endereço, com validação e emissão explícita
+do endereço normalizado; sem HTTP, storage ou UUID. 28 testes focados e 247 na
+suíte completa aprovados; build sem avisos e diff validado. Foco e associações
+de erro testados no DOM; revisão visual/manual permanece para FE-21. A rota
+de checkout será introduzida na FE-16.
 
 A FE-07 — validar integração real — foi concluída com confirmação manual do utilizador. Evidência de arranque,
 HTTP, correção de audiência e limitações da validação em [INTEGRATION_FE07.md](INTEGRATION_FE07.md).

@@ -165,8 +165,8 @@ Executar uma microtarefa por vez, reconfirmando código e numeração ao começa
 As quatro entregas iniciais foram desdobradas em FE-10–21 antes de qualquer
 implementação. A numeração abaixo substitui a proposta anterior FE-10–13;
 nenhuma tarefa dessa proposta anterior chegou a ser executada. Todas as tarefas
-abaixo têm escopo aprovado. FE-10–14 foram concluídas conforme os registros
-de validação ao final; FE-15–21 permanecem planejadas.
+abaixo têm escopo aprovado. FE-10–15 foram concluídas conforme os registros
+de validação ao final; FE-16–21 permanecem planejadas.
 
 | ID | Microtarefa | Depende de | Escopo e critério de conclusão |
 | --- | --- | --- | --- |
@@ -212,7 +212,7 @@ links e diff; não altera execução e não requer repetir testes Angular.
    antes de validar/habilitar o checkout; não ativar backend nesta definição.
 
 O utilizador aprovou explicitamente o plano após a apresentação destas cinco
-decisões. A próxima microtarefa é FE-15 — Formulário de endereço. Este registro
+decisões. A próxima microtarefa é FE-16 — Prévia do checkout. Este registro
 não executa a implementação nem altera configuração de serviços.
 
 Se for necessária recuperação entre abas,
@@ -403,3 +403,40 @@ duplicação, chave/corpo imutáveis, status/JSON inválidos, falha de persistê
 GET por ID conhecido e isolamento de sessão. Não houve POST real, integração
 com backend/Keycloak, nova tela, ativação de serviços, migration ou dependência.
 O coordenador ainda não é chamado pela UI; a ligação à tela pertence à FE-18.
+
+## Validação da FE-15 — Formulário de endereço
+
+Concluída em 2026-11-01. Componente standalone `ShippingAddressForm`, seletor
+`app-shipping-address-form`, com os seis campos de ShippingAddressRequest e os
+limites reconfirmados no DTO Java. Campos começam vazios; complemento é opcional.
+Código postal aceita texto até 20 caracteres sem regra por país. O código de
+país é normalizado para duas letras maiúsculas, sem lista fixa de países.
+
+Rótulos explícitos, required/maxlength e tokens autocomplete de entrega por campo.
+O formulário usa novalidate para apresentar mensagens consistentes da aplicação:
+erro ao sair de um campo ou após confirmação inválida, aria-invalid e associação
+de dicas/erros via aria-describedby. O resumo tem links que focam o campo sem
+alterar a URL e recebe foco após confirmação inválida. Editar não desloca foco
+para o resumo; corrigir um valor limpa seu erro. IDs são únicos por instância.
+
+Na confirmação válida, `addressConfirmed` emite uma cópia dos seis campos com
+trim, país em maiúsculas e complemento vazio como null, sem alterar o rascunho
+digitado. O Store continua responsável por validar/congelar o corpo persistido;
+o formulário não recebe nem renormaliza intenções salvas. Inputs `disabled` e
+`submitLabel` permitem ao pai bloquear a edição/confirmação e definir o rótulo
+da ação. A confirmação só emite endereço; não grava storage, não gera UUID e
+não acessa AuthService, coordenador ou HTTP.
+
+- `npm test -- --watch=false --include=src/app/order/shipping-address-form.spec.ts`: 28 testes aprovados após corrigir a tipagem do observador usado no teste.
+- `npm test -- --watch=false`: 247 testes aprovados, onze arquivos, sem falhas.
+- `npm run build`: aprovado sem avisos.
+- `git diff --check`: aprovado.
+
+Testes DOM cobrem obrigatoriedade, espaços em branco, limites exatos/excedidos,
+país, código postal estrangeiro, complemento null, normalização, erro associado,
+foco no resumo/campo, ausência de desvio de foco ao editar, bloqueio do formulário
+e isolamento de IDs/cópias emitidas. CSS prevê uma coluna abaixo de 600 px,
+quebra de textos longos e controles com altura mínima de 44 px. Não houve revisão
+visual em navegador, navegação manual por teclado ou leitor de ecrã; seguem na
+FE-21. Ainda sem rota/tela de checkout ou envio de pedido. Nenhuma alteração de
+backend, contrato, schema, autenticação ou dependência.

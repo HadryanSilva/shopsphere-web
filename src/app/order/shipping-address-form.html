@@ -1,0 +1,63 @@
+<form novalidate [attr.aria-labelledby]="prefix + '-heading'" (submit)="confirm($event)">
+  <h2 [id]="prefix + '-heading'">Endereço de entrega</h2>
+  <p>Todos os campos são obrigatórios, exceto o complemento.</p>
+  @if (submitted() && invalidFields().length) {
+    <section
+      #summary
+      class="error-summary"
+      tabindex="-1"
+      role="alert"
+      [attr.aria-labelledby]="prefix + '-summary-heading'"
+    >
+      <h3 [id]="prefix + '-summary-heading'">Verifique o endereço</h3>
+      <ul>
+        @for (field of invalidFields(); track field.name) {
+          <li>
+            <a [href]="'#' + prefix + '-' + field.name" (click)="focusField(field.name, $event)"
+              >{{ field.label }}: {{ errors()[field.name] }}</a
+            >
+          </li>
+        }
+      </ul>
+    </section>
+  }
+  <fieldset [disabled]="disabled()">
+    <legend class="visually-hidden">Dados do endereço de entrega</legend>
+    <div class="fields">
+      @for (field of fields; track field.name) {
+        <div
+          class="field"
+          [class.full-width]="
+            field.name === 'recipient' ||
+            field.name === 'addressLine' ||
+            field.name === 'addressLine2'
+          "
+        >
+          <label [for]="prefix + '-' + field.name">{{ field.label }}</label>
+          <input
+            type="text"
+            [id]="prefix + '-' + field.name"
+            [name]="field.name"
+            [value]="values()[field.name]"
+            [required]="!field.optional"
+            [maxLength]="field.max"
+            [attr.autocomplete]="field.autocomplete"
+            [attr.autocapitalize]="field.name === 'countryCode' ? 'characters' : null"
+            [spellcheck]="false"
+            [attr.aria-invalid]="error(field.name) ? 'true' : null"
+            [attr.aria-describedby]="describedBy(field.name)"
+            (input)="edit(field.name, $event)"
+            (blur)="touch(field.name)"
+          />
+          @if (field.hint) {
+            <p class="hint" [id]="prefix + '-' + field.name + '-hint'">{{ field.hint }}</p>
+          }
+          @if (error(field.name); as message) {
+            <p class="field-error" [id]="prefix + '-' + field.name + '-error'">{{ message }}</p>
+          }
+        </div>
+      }
+    </div>
+    <button type="submit">{{ submitLabel() }}</button>
+  </fieldset>
+</form>
