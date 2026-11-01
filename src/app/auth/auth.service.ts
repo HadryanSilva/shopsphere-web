@@ -1,7 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { computed, DestroyRef, inject, Injectable, InjectionToken, signal } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subject } from 'rxjs';
 import Keycloak, { KeycloakConfig } from 'keycloak-js';
 
 export const KEYCLOAK_FACTORY = new InjectionToken<(config: KeycloakConfig) => Keycloak>(
@@ -25,6 +25,7 @@ export class AuthService {
   private readonly authSubject = signal<string | undefined>(undefined);
   private readonly authError = signal('');
   private readonly pending = signal(false);
+  private readonly logoutRequested = new Subject<void>();
   private client?: Keycloak;
   private initialization?: Promise<void>;
   readonly state = this.authState.asReadonly();
@@ -33,6 +34,7 @@ export class AuthService {
   );
   readonly error = this.authError.asReadonly();
   readonly actionPending = this.pending.asReadonly();
+  readonly explicitLogout = this.logoutRequested.asObservable();
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {
@@ -156,6 +158,7 @@ export class AuthService {
     this.pending.set(true);
     this.authError.set('');
     try {
+      this.logoutRequested.next();
       await client.logout({ redirectUri: this.redirectUri() });
     } catch {
       this.authError.set('Não foi possível terminar a sessão. Tente novamente.');

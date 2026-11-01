@@ -18,14 +18,15 @@ Cada microtarefa termina com revisão do diff, validação pertinente e commit l
 | FE-10 | Cliente HTTP de pedidos | DTOs reais, GET/POST autenticados com timeout, payload restrito ao endereço, chave fornecida pelo chamador e ausência de retry automático; testes de contrato. | Concluída |
 | FE-11 | Página de consulta do pedido | Rota por ID, snapshots e totais do servidor, atualização manual, UUID/401/403/404/retry, respostas inválidas e isolamento entre sessões. | Concluída |
 | FE-12 | Identidade estável no frontend | Sub reativo por conta, limpeza no logout/descarte e proteção de renovação durante troca de conta; testes do ciclo de sessão e navegação. | Concluída |
+| FE-13 | Persistência da intenção por conta | Registro versionado em sessionStorage, endereço/chave congelados, referência de pedido, isolamento por sub, limpeza no logout/troca de conta e recuperação após expiração; falhas de storage testadas. | Concluída |
 
 ## Limites desta fase
 
 A próxima fase foi definida documentalmente na **FE-09 — Checkout e pedido**,
 em [CHECKOUT_FE09.md](CHECKOUT_FE09.md). As cinco decisões e a sequência FE-10–21
 foram aprovadas explicitamente pelo utilizador em 2026-10-31. A implementação
-tem FE-10–12 concluídas; a próxima microtarefa é FE-13 — Persistência da intenção
-por conta. Não há checkout habilitado nem alteração de backend nesta fase.
+tem FE-10–13 concluídas; a próxima microtarefa é FE-14 — Envio e recuperação
+da intenção. Não há checkout habilitado nem alteração de backend nesta fase.
 
 A sequência detalhada em CHECKOUT_FE09.md divide cliente HTTP, consulta do pedido,
 identidade, armazenamento da intenção, envio/recuperação, formulário, prévia,
@@ -47,6 +48,13 @@ FE-12: sub mantido em snapshot reativo, limpo no descarte/logout, com proteção
 contra token ou falha de refresh de outra conta. 62 testes focados e 136 na
 suíte completa aprovados; build sem avisos e diff validado. Sem storage novo
 ou validação com Keycloak real nesta microtarefa.
+
+FE-13: intenção por sub em sessionStorage, normalização única, cópias congeladas,
+preservação na expiração técnica e limpeza no logout explícito/troca de conta.
+Referência de pedido substitui endereço numa escrita; falha preserva o registro
+anterior. 66 testes focados e 177 na suíte completa aprovados; build sem avisos
+e diff validado. Nenhum POST ou tela de checkout. Limitações de armazenamento
+e recuperação documentadas em [CHECKOUT_FE09.md](CHECKOUT_FE09.md).
 
 A FE-07 — validar integração real — foi concluída com confirmação manual do utilizador. Evidência de arranque,
 HTTP, correção de audiência e limitações da validação em [INTEGRATION_FE07.md](INTEGRATION_FE07.md).

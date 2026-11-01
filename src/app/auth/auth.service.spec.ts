@@ -228,6 +228,38 @@ describe('AuthService', () => {
     expect(auth.state().status).toBe('anonymous');
   });
 
+  it('notifies explicit logout before redirect even if the provider rejects it', async () => {
+    client.authenticated = true;
+    client.tokenParsed = { sub: 'account-one' };
+    await initialize();
+    const cleanup = vi.fn();
+    const subscription = auth.explicitLogout.subscribe(cleanup);
+    client.logout.mockImplementation(async () => {
+      expect(cleanup).toHaveBeenCalledOnce();
+      throw new Error('Unavailable');
+    });
+    await auth.logout();
+    expect(cleanup).toHaveBeenCalledOnce();
+    expect(auth.state().status).toBe('authenticated');
+    subscription.unsubscribe();
+  });
+
+  it('does not report technical expiration, unsolicited logout or anonymous logout as explicit logout', async () => {
+    const cleanup = vi.fn();
+    const subscription = auth.explicitLogout.subscribe(cleanup);
+    await initialize();
+    await auth.logout();
+    client.authenticated = true;
+    client.tokenParsed = { sub: 'account-one' };
+    client.onAuthSuccess?.();
+    client.updateToken.mockRejectedValueOnce(new Error('Expired'));
+    await auth.getAccessToken();
+    expect(auth.subject()).toBeUndefined();
+    client.onAuthLogout?.();
+    expect(cleanup).not.toHaveBeenCalled();
+    subscription.unsubscribe();
+  });
+
   it('does not return another account token when the subject changes during refresh', async () => {
     client.authenticated = true;
     client.token = 'account-one-token';

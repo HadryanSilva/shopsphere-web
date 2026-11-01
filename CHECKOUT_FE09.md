@@ -165,8 +165,8 @@ Executar uma microtarefa por vez, reconfirmando código e numeração ao começa
 As quatro entregas iniciais foram desdobradas em FE-10–21 antes de qualquer
 implementação. A numeração abaixo substitui a proposta anterior FE-10–13;
 nenhuma tarefa dessa proposta anterior chegou a ser executada. Todas as tarefas
-abaixo têm escopo aprovado. FE-10–12 foram concluídas conforme os registros
-de validação ao final; FE-13–21 permanecem planejadas.
+abaixo têm escopo aprovado. FE-10–13 foram concluídas conforme os registros
+de validação ao final; FE-14–21 permanecem planejadas.
 
 | ID | Microtarefa | Depende de | Escopo e critério de conclusão |
 | --- | --- | --- | --- |
@@ -212,7 +212,7 @@ links e diff; não altera execução e não requer repetir testes Angular.
    antes de validar/habilitar o checkout; não ativar backend nesta definição.
 
 O utilizador aprovou explicitamente o plano após a apresentação destas cinco
-decisões. A próxima microtarefa é FE-13 — Persistência da intenção por conta. Este registro
+decisões. A próxima microtarefa é FE-14 — Envio e recuperação da intenção. Este registro
 não executa a implementação nem altera configuração de serviços.
 
 Se for necessária recuperação entre abas,
@@ -302,3 +302,51 @@ Adaptador e HTTP simulados; não houve login/refresh/logout reais no Keycloak
 nesta microtarefa. Navegação e PKCE existentes preservados na suíte. Tokens
 continuam privados e em memória, sem persistência de endereço ou intenção,
 alteração de backend, permissões, configuração do Keycloak ou dependências.
+
+## Validação da FE-13 — Persistência da intenção por conta
+
+Concluída em 2026-11-01. `CheckoutIntentStore` mantém um único registro por aba
+na chave sessionStorage `shopsphere.checkout-intent`, com versão 1 e sub do dono.
+O vínculo à conta está no registro, sem usar username como identidade. Não há
+token, preço, item, total ou escrita em localStorage.
+
+- `begin(address)` valida e normaliza uma vez os seis campos permitidos, gera
+  UUID seguro e só devolve a intenção após a escrita. Objetos de chave/corpo
+  retornados são congelados, incluindo o endereço, sem referências ao formulário.
+- `read()` valida versão, proprietário, UUID, campos e limites antes de devolver
+  uma cópia congelada. Não normaliza novamente nem expira por tempo a intenção.
+  Registro inválido bloqueia criação/substituição; não é apagado automaticamente.
+- Intenção pendente bloqueia outra chave/endereço. Uma referência de pedido já
+  conhecido permite iniciar uma nova intenção explícita.
+- `recordOrder(key, id)` verifica a chave e grava referência/remoção de endereço
+  numa única escrita atômica. Se a escrita falhar, o registro anterior permanece
+  com a chave e o corpo exatos para replay. Não sobrescreve outro ID já conhecido.
+
+O serviço é instanciado no inicializador da aplicação, mesmo fora do checkout.
+O evento `AuthService.explicitLogout` permite remover o registro antes de chamar
+o adaptador/redirecionar, inclusive quando o provedor rejeita o logout. Expiração
+técnica ou logout não solicitado pelo utilizador não emite esse evento: a leitura
+fica bloqueada sem sessão e a mesma conta pode recuperar o registro ao entrar.
+Nova conta remove o registro do proprietário anterior; operações verificam isso
+sincronamente, além da limpeza antecipada pelo effect da sessão.
+
+Falhas de leitura, acesso ou escrita resultam em erros tipados sem dados pessoais
+ou detalhe bruto. Falha de remoção deixa a limpeza marcada para nova tentativa
+antes de reutilizar o registro, sem impedir o arranque público ou lançar erro no
+fluxo de logout. Enquanto o navegador recusar a remoção, não há garantia de
+eliminação física. A marca de limpeza pendente é em memória; recarregar após
+falha de remoção não preserva essa marca, embora o vínculo por conta continue
+validado. Recuperação entre abas/dispositivos e depois de fechar a aba continua
+fora do contrato aprovado.
+
+- `npm test -- --watch=false --include=src/app/order/checkout-intent-store.spec.ts --include=src/app/auth/auth.service.spec.ts`: 66 testes aprovados (39 de armazenamento e 27 de autenticação).
+- `npm test -- --watch=false`: 177 testes aprovados, nove arquivos, sem falhas.
+- `npm run build`: aprovado sem avisos.
+- `git diff --check`: aprovado.
+
+Testes usam sessionStorage/adaptador simulados e recriação do serviço para testar
+recarga, além dos inicializadores reais da configuração Angular com AuthService
+simulado. A primeira compilação apontou uso de método não público no teste do
+inicializador; o teste foi corrigido para aguardar a inicialização pelo TestBed.
+Não houve POST, integração backend/Keycloak real, nova rota, tela, dependência,
+schema ou ativação de checkout. O coordenador de envio/replay é a FE-14.
