@@ -165,8 +165,8 @@ Executar uma microtarefa por vez, reconfirmando código e numeração ao começa
 As quatro entregas iniciais foram desdobradas em FE-10–21 antes de qualquer
 implementação. A numeração abaixo substitui a proposta anterior FE-10–13;
 nenhuma tarefa dessa proposta anterior chegou a ser executada. Todas as tarefas
-abaixo têm escopo aprovado. FE-10–13 foram concluídas conforme os registros
-de validação ao final; FE-14–21 permanecem planejadas.
+abaixo têm escopo aprovado. FE-10–14 foram concluídas conforme os registros
+de validação ao final; FE-15–21 permanecem planejadas.
 
 | ID | Microtarefa | Depende de | Escopo e critério de conclusão |
 | --- | --- | --- | --- |
@@ -212,7 +212,7 @@ links e diff; não altera execução e não requer repetir testes Angular.
    antes de validar/habilitar o checkout; não ativar backend nesta definição.
 
 O utilizador aprovou explicitamente o plano após a apresentação destas cinco
-decisões. A próxima microtarefa é FE-14 — Envio e recuperação da intenção. Este registro
+decisões. A próxima microtarefa é FE-15 — Formulário de endereço. Este registro
 não executa a implementação nem altera configuração de serviços.
 
 Se for necessária recuperação entre abas,
@@ -350,3 +350,56 @@ simulado. A primeira compilação apontou uso de método não público no teste 
 inicializador; o teste foi corrigido para aguardar a inicialização pelo TestBed.
 Não houve POST, integração backend/Keycloak real, nova rota, tela, dependência,
 schema ou ativação de checkout. O coordenador de envio/replay é a FE-14.
+
+## Validação da FE-14 — Envio e recuperação da intenção
+
+Concluída em 2026-11-01. `CheckoutCoordinator` coordena Store e OrderApi sem
+alterar rotas, templates ou habilitar checkout no carrinho. A construção do
+serviço e as mudanças de sessão restauram somente o estado local, sem HTTP.
+
+- `restore()` consulta o registro local e apresenta vazio, intenção pendente ou
+  referência conhecida. Não cria chave nem envia pedido.
+- `submit(address)` exige sessão válida e ação explícita; salva a intenção antes
+  de subscrever o POST. A operação em andamento bloqueia submit/recover duplicados,
+  inclusive enquanto aguarda renovação do token. O Store impede substituir uma
+  intenção já pendente por outra chave/endereço.
+- `recover()` é explícito: GET para um ID conhecido e POST com a chave/corpo
+  originais para resultado incerto. Não consulta Cart nem depende de ele continuar
+  ativo para fazer replay. Ausência de intenção não cria uma nova.
+- `cancel()` interrompe a subscrição preservando a intenção e o resultado incerto
+  da escrita. A futura tela deverá chamá-lo ao sair. Destruição do serviço, logout
+  explícito e troca/expiração da sessão também cancelam operações, sem prometer
+  rollback no servidor. Respostas de contexto anterior não alteram estado/storage.
+
+O OrderApi ganhou `createOrderResponse` para observar status/corpo, mantendo
+`createOrder` com seu retorno anterior. O coordenador exige 201 e pedido válido
+antes de gravar a referência. A validação já usada pela página do pedido foi
+partilhada em `order-response.ts`, acrescentando verificação do UUID do ID para
+criação sem ID esperado. A consulta continua verificando o ID solicitado.
+
+Erros 400/401/403/404/409 e 5xx recebem mensagens seguras; falha no POST mantém
+a tentativa sem gerar outra chave ou deduzir aborto por texto do backend.
+POST 404 refere-se ao carrinho; GET 404 é pedido não encontrado. Timeout geral
+de dez segundos cobre também espera pelo token; resposta vazia/incompatível,
+status 2xx diferente de 201 e rede interrompida não são sucesso de criação.
+Não há retry automático, polling, login automático ou envio ao recarregar/entrar.
+
+Depois de uma resposta válida, a falha ao gravar a referência produz sucesso com
+`persisted: false`, preserva o registro anterior e mantém ID/chave por conta em
+memória. A próxima recuperação usa GET e tenta persistir novamente, mesmo com
+falha de leitura do storage. O ID em memória é ocultado na expiração e preservado
+para reautenticação da mesma conta; logout explícito/outra conta o descartam.
+Recarregar após falha de gravação perde esse ID em memória, mas preserva a
+recuperação pelo POST da intenção original no sessionStorage.
+
+- `npm test -- --watch=false --include=src/app/order/checkout-coordinator.spec.ts --include=src/app/order/order-api.spec.ts --include=src/app/order/order-page.spec.ts`: 95 testes aprovados (42 do coordenador, 16 do cliente e 37 da página).
+- `npm test -- --watch=false`: 219 testes aprovados, dez arquivos, sem falhas.
+- `npm run build`: aprovado sem avisos.
+- `git diff --check`: aprovado.
+
+Testes usam OrderApi e Store reais com HttpTestingController, storage e sessão
+simulados; cobrem recarga, perda de resposta, timeout, cancelamento, bloqueio de
+duplicação, chave/corpo imutáveis, status/JSON inválidos, falha de persistência,
+GET por ID conhecido e isolamento de sessão. Não houve POST real, integração
+com backend/Keycloak, nova tela, ativação de serviços, migration ou dependência.
+O coordenador ainda não é chamado pela UI; a ligação à tela pertence à FE-18.

@@ -17,6 +17,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, map, of, startWith, Subject, switchMap } from 'rxjs';
 import { AuthService, AuthState } from '../auth/auth.service';
 import { OrderApi, OrderResponse } from './order-api';
+import { isOrderResponse } from './order-response';
 
 registerLocaleData(localePt, 'pt-PT');
 
@@ -44,36 +45,6 @@ const labels: Record<string, string> = {
   CANCELLED: 'Pedido cancelado',
   PAYMENT_FAILED: 'Falha no pagamento',
 };
-
-function validOrder(order: OrderResponse, id: string): boolean {
-  const money = (value: unknown) =>
-    typeof value === 'number' && Number.isFinite(value) && value >= 0;
-  return (
-    !!order &&
-    typeof order.id === 'string' &&
-    order.id.toLowerCase() === id.toLowerCase() &&
-    typeof order.status === 'string' &&
-    typeof order.currency === 'string' &&
-    /^[A-Z]{3}$/.test(order.currency) &&
-    typeof order.updatedAt === 'string' &&
-    Number.isFinite(Date.parse(order.updatedAt)) &&
-    [order.subtotal, order.discountAmount, order.shippingAmount, order.totalAmount].every(money) &&
-    Array.isArray(order.items) &&
-    order.items.length > 0 &&
-    order.items.every(
-      (item) =>
-        !!item &&
-        typeof item.productId === 'string' &&
-        uuid.test(item.productId) &&
-        typeof item.productName === 'string' &&
-        !!item.productName.trim() &&
-        Number.isSafeInteger(item.quantity) &&
-        item.quantity > 0 &&
-        money(item.unitPrice) &&
-        money(item.lineTotal),
-    )
-  );
-}
 
 @Component({
   imports: [CurrencyPipe, DatePipe, RouterLink],
@@ -132,7 +103,8 @@ export class OrderPage {
                 });
               return this.api.getOrder(context.id).pipe(
                 map((order): OrderState => {
-                  if (!validOrder(order, context.id)) throw new Error('Invalid order response');
+                  if (!isOrderResponse(order, context.id))
+                    throw new Error('Invalid order response');
                   return { status: 'loaded', order };
                 }),
                 catchError((error: unknown) => {

@@ -19,14 +19,15 @@ Cada microtarefa termina com revisão do diff, validação pertinente e commit l
 | FE-11 | Página de consulta do pedido | Rota por ID, snapshots e totais do servidor, atualização manual, UUID/401/403/404/retry, respostas inválidas e isolamento entre sessões. | Concluída |
 | FE-12 | Identidade estável no frontend | Sub reativo por conta, limpeza no logout/descarte e proteção de renovação durante troca de conta; testes do ciclo de sessão e navegação. | Concluída |
 | FE-13 | Persistência da intenção por conta | Registro versionado em sessionStorage, endereço/chave congelados, referência de pedido, isolamento por sub, limpeza no logout/troca de conta e recuperação após expiração; falhas de storage testadas. | Concluída |
+| FE-14 | Envio e recuperação da intenção | Coordenador salva antes do POST, bloqueia duplicação, valida 201/pedido, preserva chave/corpo em falhas e recupera explicitamente por POST ou GET quando há ID. Sem ativar UI. | Concluída |
 
 ## Limites desta fase
 
 A próxima fase foi definida documentalmente na **FE-09 — Checkout e pedido**,
 em [CHECKOUT_FE09.md](CHECKOUT_FE09.md). As cinco decisões e a sequência FE-10–21
 foram aprovadas explicitamente pelo utilizador em 2026-10-31. A implementação
-tem FE-10–13 concluídas; a próxima microtarefa é FE-14 — Envio e recuperação
-da intenção. Não há checkout habilitado nem alteração de backend nesta fase.
+tem FE-10–14 concluídas; a próxima microtarefa é FE-15 — Formulário de endereço.
+Não há checkout habilitado nem alteração de backend nesta fase.
 
 A sequência detalhada em CHECKOUT_FE09.md divide cliente HTTP, consulta do pedido,
 identidade, armazenamento da intenção, envio/recuperação, formulário, prévia,
@@ -55,6 +56,12 @@ Referência de pedido substitui endereço numa escrita; falha preserva o registr
 anterior. 66 testes focados e 177 na suíte completa aprovados; build sem avisos
 e diff validado. Nenhum POST ou tela de checkout. Limitações de armazenamento
 e recuperação documentadas em [CHECKOUT_FE09.md](CHECKOUT_FE09.md).
+
+FE-14: coordenador de envio/reconciliação explícitos, sem retry automático,
+com deadline, cancelamento e isolamento entre sessões. Resultado conhecido
+continua recuperável por GET se a gravação local falhar. 95 testes focados e
+219 na suíte completa aprovados; build sem avisos e diff validado. Sem chamada
+pela UI ou integração real nesta microtarefa. Detalhes em CHECKOUT_FE09.md.
 
 A FE-07 — validar integração real — foi concluída com confirmação manual do utilizador. Evidência de arranque,
 HTTP, correção de audiência e limitações da validação em [INTEGRATION_FE07.md](INTEGRATION_FE07.md).

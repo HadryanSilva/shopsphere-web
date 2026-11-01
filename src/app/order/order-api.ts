@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { defer, from, Observable, switchMap, throwError } from 'rxjs';
+import { defer, from, map, Observable, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 
 export type OrderStatus =
@@ -61,6 +61,12 @@ export class OrderApi {
   }
 
   createOrder(request: CreateOrderRequest, idempotencyKey: string) {
+    return this.createOrderResponse(request, idempotencyKey).pipe(
+      map((response) => response.body!),
+    );
+  }
+
+  createOrderResponse(request: CreateOrderRequest, idempotencyKey: string) {
     const address = request.shippingAddress;
     const body: CreateOrderRequest = {
       shippingAddress: {
@@ -76,6 +82,7 @@ export class OrderApi {
       this.http.post<OrderResponse>('/api/v1/orders', body, {
         ...this.options(token),
         headers: { Authorization: `Bearer ${token}`, 'Idempotency-Key': idempotencyKey },
+        observe: 'response',
       }),
     );
   }
