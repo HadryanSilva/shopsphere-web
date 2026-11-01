@@ -58,6 +58,6 @@
         </div>
       }
     </div>
-    <button type="submit">{{ submitLabel() }}</button>
+    <button type="submit" [disabled]="submitDisabled()">{{ submitLabel() }}</button>
   </fieldset>
 </form>

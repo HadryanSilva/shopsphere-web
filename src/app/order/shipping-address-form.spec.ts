@@ -243,6 +243,20 @@ describe('ShippingAddressForm', () => {
     expect(emitted).toHaveBeenLastCalledWith(expect.objectContaining({ city: 'Lisboa' }));
   });
 
+  it('can disable only confirmation while allowing the address to be edited', async () => {
+    fixture.componentRef.setInput('submitDisabled', true);
+    fixture.detectChanges();
+    fill();
+    expect(input('city').matches(':disabled')).toBe(false);
+    expect(element().querySelector<HTMLButtonElement>('button')?.disabled).toBe(true);
+    await submit();
+    expect(emitted).not.toHaveBeenCalled();
+    fixture.componentRef.setInput('submitDisabled', false);
+    fixture.detectChanges();
+    await submit();
+    expect(emitted).toHaveBeenCalledWith(expect.objectContaining({ city: 'Lisboa' }));
+  });
+
   it('uses unique labels and description IDs when two forms are rendered', () => {
     const other = TestBed.createComponent(ShippingAddressForm);
     other.detectChanges();

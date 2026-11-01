@@ -56,6 +56,7 @@ const fields: ReadonlyArray<{
 })
 export class ShippingAddressForm {
   readonly disabled = input(false);
+  readonly submitDisabled = input(false);
   readonly submitLabel = input('Confirmar endereço');
   readonly addressConfirmed = output<ShippingAddressRequest>();
   protected readonly fields = fields;
@@ -126,7 +127,7 @@ export class ShippingAddressForm {
 
   protected confirm(event: Event) {
     event.preventDefault();
-    if (this.disabled()) return;
+    if (this.disabled() || this.submitDisabled()) return;
     this.submitted.set(true);
     if (this.invalidFields().length) {
       afterNextRender(() => this.summary()?.nativeElement.focus(), { injector: this.injector });

@@ -165,8 +165,8 @@ Executar uma microtarefa por vez, reconfirmando código e numeração ao começa
 As quatro entregas iniciais foram desdobradas em FE-10–21 antes de qualquer
 implementação. A numeração abaixo substitui a proposta anterior FE-10–13;
 nenhuma tarefa dessa proposta anterior chegou a ser executada. Todas as tarefas
-abaixo têm escopo aprovado. FE-10–15 foram concluídas conforme os registros
-de validação ao final; FE-16–21 permanecem planejadas.
+abaixo têm escopo aprovado. FE-10–16 foram concluídas conforme os registros
+de validação ao final; FE-17–21 permanecem planejadas.
 
 | ID | Microtarefa | Depende de | Escopo e critério de conclusão |
 | --- | --- | --- | --- |
@@ -212,7 +212,7 @@ links e diff; não altera execução e não requer repetir testes Angular.
    antes de validar/habilitar o checkout; não ativar backend nesta definição.
 
 O utilizador aprovou explicitamente o plano após a apresentação destas cinco
-decisões. A próxima microtarefa é FE-16 — Prévia do checkout. Este registro
+decisões. A próxima microtarefa é FE-17 — Verificar ambiente local de checkout. Este registro
 não executa a implementação nem altera configuração de serviços.
 
 Se for necessária recuperação entre abas,
@@ -440,3 +440,51 @@ quebra de textos longos e controles com altura mínima de 44 px. Não houve revi
 visual em navegador, navegação manual por teclado ou leitor de ecrã; seguem na
 FE-21. Ainda sem rota/tela de checkout ou envio de pedido. Nenhuma alteração de
 backend, contrato, schema, autenticação ou dependência.
+
+## Validação da FE-16 — Prévia do checkout
+
+Concluída em 2026-11-01. Rota lazy `/checkout`, título próprio e foco no h1,
+com convite para login e leitura autenticada por CartApi. Abertura/login só
+consultam o carrinho; nenhum POST ou criação implícita foi introduzido.
+
+Carrinho ACTIVE não vazio com até cem produtos distintos apresenta resumo com
+nomes, quantidades, preço por unidade, subtotal e total estimado recebidos do
+servidor, formatados com a moeda informada. O texto explicita revalidação de
+preços e verificação posterior de estoque. Não há cálculo de total definitivo,
+frete, desconto ou disponibilidade de estoque no frontend.
+
+Carrinho vazio/ausente, inativo ou com mais de cem productIds distintos não
+monta o formulário; apresenta estado próprio e links para explorar/voltar ao
+carrinho. O limite usa os itens distintos, sem depender de totalItems ou soma
+de quantidades. Resposta incompatível ou produtos duplicados gera erro seguro
+recuperável. O 404 só é vazio para o detail existente `Cart not found`, mantendo
+a distinção de produto ausente ou outro 404. Tratados 401/reautenticação explícita,
+403/409/rede/integração e nova tentativa manual, sem detalhes internos.
+
+O formulário FE-15 permite editar o rascunho, mas a nova opção `submitDisabled`
+bloqueia somente o botão e a confirmação sintética. O botão informa criação
+indisponível, com explicação visível na página. Nenhum listener conecta o output
+a OrderApi/CheckoutCoordinator/Store. Não grava endereço, não gera chave e não
+chama endpoints de pedido. A entrada pelo botão do carrinho permanece desativada
+até FE-18; a prévia é acessível pela URL direta.
+
+Consultas são canceladas ao sair ou mudar/terminar a sessão. O contexto usa
+status/sub e oculta carrinho/formulário antigos antes de aceitar nova resposta,
+inclusive em contas com o mesmo nome. Renovar token ou mudar nome na mesma
+conta não recarrega a página nem perde rascunho. Atualizar o carrinho, trocar de
+conta, terminar sessão ou sair desmonta o formulário e descarta o rascunho
+não persistido; preservar endereço durante refresh manual não faz parte desta
+prévia. Links de retorno preservam a consulta sem incluir endereço na URL.
+
+- `npm test -- --watch=false --include=src/app/order/checkout-page.spec.ts --include=src/app/order/shipping-address-form.spec.ts`: 58 testes aprovados (29 da página e 29 do formulário).
+- `npm test -- --watch=false`: 277 testes aprovados, doze arquivos, sem falhas.
+- `npm run build`: aprovado sem avisos.
+- `git diff --check`: aprovado.
+
+Testes com RouterTestingHarness e HTTP/sessão simulados cobrem acesso direto,
+totais/moeda, formulário editável sem envio/persistência, vazio/404 ambíguo,
+inativo, cem/101 itens, erros/retry, sessão, foco programático e cancelamento.
+CSS prevê uma coluna abaixo de 900 px e quebra de textos longos. Não houve
+integração real, inspeção visual em navegador, teclado ou leitor de ecrã manual;
+seguem nas FE-19–21. Nenhuma alteração de backend, contrato, schema, Keycloak,
+dependências ou ativação do checkout por snapshot nesta entrega.

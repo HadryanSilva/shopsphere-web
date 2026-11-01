@@ -1,0 +1,104 @@
+<a class="back-link" routerLink="/cart" queryParamsHandling="preserve">← Voltar ao carrinho</a>
+<div class="page-heading">
+  <h1 #heading tabindex="-1">Rever checkout</h1>
+  @if (auth.state().status === 'authenticated') {
+    <button
+      class="refresh"
+      type="button"
+      [disabled]="state().status === 'loading'"
+      (click)="load()"
+    >
+      Atualizar carrinho
+    </button>
+  }
+</div>
+@let current = state();
+<div [attr.aria-busy]="current.status === 'loading'">
+  @switch (current.status) {
+    @case ('sign-in') {
+      <section class="state-message">
+        <h2>Entre para rever o checkout</h2>
+        <p>Os produtos do carrinho ficam associados à sua conta.</p>
+        <button
+          type="button"
+          [disabled]="auth.state().status !== 'anonymous' || auth.actionPending()"
+          (click)="auth.login()"
+        >
+          Entrar
+        </button>
+      </section>
+    }
+    @case ('loading') {
+      <p class="state-message" role="status">A carregar carrinho…</p>
+    }
+    @case ('empty') {
+      <section class="state-message">
+        <h2 role="status">O seu carrinho ainda está vazio.</h2>
+        <a routerLink="/" queryParamsHandling="preserve" fragment="catalogo">Explorar produtos</a>
+      </section>
+    }
+    @case ('blocked') {
+      <section class="state-message">
+        <p role="status">{{ current.message }}</p>
+        <a routerLink="/cart" queryParamsHandling="preserve">Consultar carrinho</a>
+      </section>
+    }
+    @case ('error') {
+      <section class="state-message">
+        <p role="alert">{{ current.message }}</p>
+        @if (current.unauthorized) {
+          <button type="button" [disabled]="auth.actionPending()" (click)="auth.login(true)">
+            Entrar novamente
+          </button>
+        } @else {
+          <button type="button" (click)="load()">Tentar novamente</button>
+        }
+      </section>
+    }
+    @case ('loaded') {
+      <p class="availability" role="status">
+        A criação de pedidos ainda não está disponível. Pode rever os produtos e preencher o
+        endereço.
+      </p>
+      <div class="checkout-layout">
+        <section class="address-panel" aria-label="Endereço para entrega">
+          <app-shipping-address-form
+            [submitDisabled]="true"
+            submitLabel="Criar pedido (indisponível)"
+          />
+        </section>
+        <aside class="summary" aria-label="Resumo estimado do carrinho">
+          <h2>Resumo estimado</h2>
+          <p>
+            {{ current.cart.totalItems }}
+            {{ current.cart.totalItems === 1 ? 'produto diferente' : 'produtos diferentes' }}
+          </p>
+          <ul class="items">
+            @for (item of current.cart.items; track item.productId) {
+              <li>
+                <h3>{{ item.productName }}</h3>
+                <p>Quantidade: {{ item.quantity }}</p>
+                <p>
+                  Por unidade:
+                  {{ item.unitPrice | currency: current.cart.currency : 'symbol' : '1.2-2' }}
+                </p>
+                <p>
+                  Subtotal:
+                  {{ item.subTotal | currency: current.cart.currency : 'symbol' : '1.2-2' }}
+                </p>
+              </li>
+            }
+          </ul>
+          <p class="estimated-total">
+            Total estimado
+            <strong>{{
+              current.cart.estimatedTotal | currency: current.cart.currency : 'symbol' : '1.2-2'
+            }}</strong>
+          </p>
+          <p>Os preços serão revalidados ao criar o pedido. O estoque ainda será verificado.</p>
+          <a routerLink="/cart" queryParamsHandling="preserve">Editar produtos no carrinho</a>
+        </aside>
+      </div>
+    }
+  }
+</div>

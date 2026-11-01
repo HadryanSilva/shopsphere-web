@@ -3,6 +3,11 @@ import { CatalogPage } from './catalog/catalog-page';
 
 export const routes: Routes = [
   {
+    path: 'checkout',
+    loadComponent: () => import('./order/checkout-page').then((module) => module.CheckoutPage),
+    title: 'Checkout | ShopSphere',
+  },
+  {
     path: 'orders/:id',
     loadComponent: () => import('./order/order-page').then((module) => module.OrderPage),
     title: 'Pedido | ShopSphere',
