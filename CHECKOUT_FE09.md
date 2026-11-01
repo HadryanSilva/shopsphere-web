@@ -165,8 +165,8 @@ Executar uma microtarefa por vez, reconfirmando código e numeração ao começa
 As quatro entregas iniciais foram desdobradas em FE-10–21 antes de qualquer
 implementação. A numeração abaixo substitui a proposta anterior FE-10–13;
 nenhuma tarefa dessa proposta anterior chegou a ser executada. Todas as tarefas
-abaixo têm escopo aprovado. FE-10–16 foram concluídas conforme os registros
-de validação ao final; FE-17–21 permanecem planejadas.
+abaixo têm escopo aprovado. FE-10–17 foram concluídas conforme os registros
+de validação ao final; FE-18–21 permanecem planejadas.
 
 | ID | Microtarefa | Depende de | Escopo e critério de conclusão |
 | --- | --- | --- | --- |
@@ -212,7 +212,7 @@ links e diff; não altera execução e não requer repetir testes Angular.
    antes de validar/habilitar o checkout; não ativar backend nesta definição.
 
 O utilizador aprovou explicitamente o plano após a apresentação destas cinco
-decisões. A próxima microtarefa é FE-17 — Verificar ambiente local de checkout. Este registro
+decisões. A próxima microtarefa é FE-18 — Conectar confirmação e recuperação à tela. Este registro
 não executa a implementação nem altera configuração de serviços.
 
 Se for necessária recuperação entre abas,
@@ -488,3 +488,25 @@ CSS prevê uma coluna abaixo de 900 px e quebra de textos longos. Não houve
 integração real, inspeção visual em navegador, teclado ou leitor de ecrã manual;
 seguem nas FE-19–21. Nenhuma alteração de backend, contrato, schema, Keycloak,
 dependências ou ativação do checkout por snapshot nesta entrega.
+
+## Validação da FE-17 — Ambiente local de checkout
+
+Concluída e validada operacionalmente em 2026-11-01. Serviços/frontend iniciados
+com perfil dev e Order em modo snapshot, identidade de serviço existente e jobs
+de recuperação ativos. Emissão client_credentials real e GETs internos com JWT,
+bloqueio no Gateway, conectividade frontend/Catalog e rejeição anônima conferidos.
+Inventory registrou varreduras concluídas sem candidatos. O ambiente foi deixado
+ativo, sem modificar defaults de backend ou habilitar criação na UI.
+
+Order/Inventory tinham bancos dev vazios; Flyway aplicou migrations existentes
+V1–V7/V1–V5, respectivamente. A V7 de handoff de Payment já estava no JAR atual;
+nenhuma migration foi criada/editada pela FE-17. Sem pedido, intenção, reserva
+ou posição de estoque criada. Catalog/Cart mantiveram V3 e dados existentes.
+
+Evidências, opções de arranque, limites e procedimentos em
+[INTEGRATION_FE17.md](INTEGRATION_FE17.md). Secret/tokens usados só em memória
+e ambiente do processo, sem conteúdo no Git ou logs observados. Testes Angular
+e build de produção não foram repetidos nesta entrega operacional/documental;
+fontes, links e diff foram validados. Login PKCE, fluxo de compra, recuperação
+real e QA visual/manual continuam nas FE-19–21. Pré-requisito operacional da
+FE-18 validado nesta sessão, a reconfirmar se os serviços forem reiniciados.

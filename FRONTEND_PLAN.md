@@ -22,13 +22,14 @@ Cada microtarefa termina com revisão do diff, validação pertinente e commit l
 | FE-14 | Envio e recuperação da intenção | Coordenador salva antes do POST, bloqueia duplicação, valida 201/pedido, preserva chave/corpo em falhas e recupera explicitamente por POST ou GET quando há ID. Sem ativar UI. | Concluída |
 | FE-15 | Formulário de endereço | Seis campos do contrato, limites, normalização, labels/autocomplete, erros associados e foco no resumo; componente sem envio ou persistência. | Concluída |
 | FE-16 | Prévia do checkout | Rota autenticada com leitura do carrinho, resumo estimado e formulário editável; vazio/inativo/limite de cem, erros/retry e sessão; criação permanece indisponível. | Concluída |
+| FE-17 | Ambiente local de checkout | Snapshot, identidade de serviço, jobs e conectividade HTTP real conferidos; configuração local sem secrets no Git. | Concluída e validada operacionalmente |
 
 ## Limites desta fase
 
 A próxima fase foi definida documentalmente na **FE-09 — Checkout e pedido**,
 em [CHECKOUT_FE09.md](CHECKOUT_FE09.md). As cinco decisões e a sequência FE-10–21
 foram aprovadas explicitamente pelo utilizador em 2026-10-31. A implementação
-tem FE-10–16 concluídas; a próxima microtarefa é FE-17 — Verificar ambiente local de checkout.
+tem FE-10–17 concluídas; a próxima microtarefa é FE-18 — Conectar confirmação e recuperação à tela.
 Não há checkout habilitado nem alteração de backend nesta fase.
 
 A sequência detalhada em CHECKOUT_FE09.md divide cliente HTTP, consulta do pedido,
@@ -77,6 +78,13 @@ editável sem confirmação/envio. Botão do carrinho continua desativado até F
 validado. Rascunho é descartado no refresh manual ou ao sair/trocar sessão.
 Integração real e revisão visual/manual seguem nas etapas próprias; operação
 local será verificada na FE-17. Detalhes em [CHECKOUT_FE09.md](CHECKOUT_FE09.md).
+
+FE-17: serviços e frontend ativos, Order em snapshot com recuperação habilitada,
+client_credentials real e acessos internos/Gateway validados. Order e Inventory
+aplicaram as migrations existentes V1–V7/V1–V5 em bancos dev vazios, sem criar
+pedidos, reservas ou estoque. Sem habilitar criação na UI. Evidências e limites
+em [INTEGRATION_FE17.md](INTEGRATION_FE17.md); estoque vazio e testes ponta a
+ponta/PKCE seguem para as etapas próprias. Configuração válida para esta sessão.
 
 A FE-07 — validar integração real — foi concluída com confirmação manual do utilizador. Evidência de arranque,
 HTTP, correção de audiência e limitações da validação em [INTEGRATION_FE07.md](INTEGRATION_FE07.md).
